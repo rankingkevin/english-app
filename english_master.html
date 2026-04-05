@@ -651,38 +651,24 @@ function speakEnglish(silentOrText = false){
   _speakText(text, silent);
 }
 
-function _speakText(text, silent = false){
-  if(_audio){
-    _audio.pause();
-    _audio.currentTime = 0;
-    _audio = null;
-  }
-
-  const url = 'https://translate.google.com/translate_tts?ie=UTF-8&tl=en-US&client=tw-ob&q='
-    + encodeURIComponent(text);
-
-  _audio = new Audio(url);
-  _audio.playbackRate = 1.0;
-  _audio.play()
-    .then(() => { if(!silent) showToast('🔊 재생 중...'); })
-    .catch(() => {
-      if(!silent) showToast('🔊 재생 중...');
-      _fallbackSpeak(text);
-    });
+function _speakText(text, silent){
+  if(!text) return;
+  if(!silent) showToast('🔊 재생 중...');
+  if(!window.speechSynthesis) return;
+  var vv = window.speechSynthesis.getVoices();
+  var v = vv.find(function(x){ return x.lang==='en-US' && x.localService; })
+    || vv.find(function(x){ return x.lang==='en-US'; })
+    || vv.find(function(x){ return x.lang.startsWith('en'); });
+  var u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US';
+  u.rate = 0.82;
+  if(v) u.voice = v;
+  window.speechSynthesis.cancel();
+  setTimeout(function(){ window.speechSynthesis.speak(u); }, 150);
 }
 
 function _fallbackSpeak(text){
-  if(!window.speechSynthesis) return;
-  const voices = window.speechSynthesis.getVoices();
-  const enVoice = voices.find(v=>v.lang==='en-US' && v.localService)
-    || voices.find(v=>v.lang==='en-US')
-    || voices.find(v=>v.lang.startsWith('en'));
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'en-US';
-  u.rate = 0.82;
-  if(enVoice) u.voice = enVoice;
-  window.speechSynthesis.cancel();
-  setTimeout(()=> window.speechSynthesis.speak(u), 100);
+  _speakText(text, true);
 }
 
 // ════════════════════════════════════
@@ -3522,17 +3508,22 @@ function startHardMode(){
 }
 
 function startTyping(chId){
-  let pool = chId ? (window.S||S).filter(s=>s.ch===chId) : [...(window.S||S)];
-  pool = pool.sort(()=>Math.random()-.5).slice(0, 30);
-  TSES = { cards:pool, idx:0 };
-  const ch = chId ? CHAPTERS.find(c=>c.id===chId) : null;
-  document.getElementById('typing-title').textContent = ch ? ch.name + ' · 타이핑' : '타이핑 연습';
-  // 브라우저 알림 권한 요청 (포모도로 완료 알림용)
-  if(Notification && Notification.permission === 'default') Notification.requestPermission();
-  // 타이머 초기화
-  resetTimer();
-  show('typing');
-  renderTypingCard();
+  try {
+    var activeS = window.S || S1;
+    if(!activeS || activeS.length === 0){ showToast('데이터 로드 중이에요. 잠시 후 다시 시도해주세요.'); return; }
+    var pool = chId ? activeS.filter(function(s){ return s.ch===chId; }) : activeS.slice();
+    pool = pool.sort(function(){ return Math.random()-.5; }).slice(0, 30);
+    if(pool.length === 0){ showToast('학습할 문장이 없어요.'); return; }
+    TSES = { cards:pool, idx:0 };
+    var activeChapters = window.CHAPTERS_ACTIVE || CHAPTERS;
+    var ch = chId ? activeChapters.find(function(c){ return c.id===chId; }) : null;
+    document.getElementById('typing-title').textContent = ch ? ch.name + ' · 타이핑' : '타이핑 연습';
+    resetTimer();
+    show('typing');
+    renderTypingCard();
+  } catch(e) {
+    showToast('오류: ' + e.message);
+  }
 }
 
 function renderTypingCard(){
@@ -3991,6 +3982,12 @@ function showToast(msg){
 window.LS_KEY_ACTIVE = 'eng800v2_srs_lv1';
 window.S = S1;
 window.CHAPTERS_ACTIVE = CHAPTERS;
+
+// iOS용 음성 미리 로드
+if(window.speechSynthesis){
+  window.speechSynthesis.getVoices();
+  window.speechSynthesis.onvoiceschanged = function(){ window.speechSynthesis.getVoices(); };
+}
 
 // 저장된 레벨 복원
 (function(){
