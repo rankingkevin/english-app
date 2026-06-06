@@ -3289,11 +3289,13 @@ function scheduleCard(c, rating){
     rep++;
 
     // 연속 쉬움 체크 (마스터 판정용)
+    // rating 5(쉬움)만 카운트, rating 4(보통)는 유지, rating < 3(어려움)만 리셋
     if(rating === 5){
       streak5 = (streak5 || 0) + 1;
-    } else {
-      streak5 = 0;
+    } else if(rating < 3){
+      streak5 = 0;  // 어려움/모름일 때만 리셋
     }
+    // 보통(rating 3~4)은 streak5 유지
 
     // 5회 연속 쉬움 → 마스터
     if(streak5 >= 5){
@@ -3850,12 +3852,27 @@ function startTyping(chId){
     } else {
       // 기본 문장 + 내 문장 합쳐서 30개 선택
       const myCards = getMySentsAsCards ? getMySentsAsCards() : [];
-      const basePool = [...(window.S||S)].sort(()=>Math.random()-.5);
+      const _srs = loadSRS();
+      // 완전습득 문장 제외 (90일 간격이라 오늘 학습 불필요)
+      const basePool = [...(window.S||S)]
+        .filter(s => !isMastered(getCard(_srs, s.no)))
+        .sort(()=>Math.random()-.5);
       const myPool = [...myCards].sort(()=>Math.random()-.5);
-      // 내 문장 최대 5개 포함, 나머지 기본 문장으로 채움
+      // 복습 대기 문장 우선 배치
+      const dueCards = basePool.filter(s => {
+        const c = getCard(_srs, s.no);
+        return c.seen && isDue(c);
+      });
+      const newCards = basePool.filter(s => !getCard(_srs, s.no).seen);
+      const restCards = basePool.filter(s => {
+        const c = getCard(_srs, s.no);
+        return c.seen && !isDue(c);
+      });
+      // 복습대기 → 신규 → 나머지 순으로 채우되 최대 25개
+      const baseSorted = [...dueCards, ...newCards, ...restCards].slice(0, 25);
+      // 내 문장 최대 5개 포함
       const mySlice = myPool.slice(0, Math.min(5, myPool.length));
-      const baseSlice = basePool.slice(0, 30 - mySlice.length);
-      pool = [...mySlice, ...baseSlice].sort(()=>Math.random()-.5);
+      pool = [...mySlice, ...baseSorted].sort(()=>Math.random()-.5);
       try { localStorage.setItem(TODAY_POOL_KEY, JSON.stringify({date:todayStr, cards:pool})); } catch(e){}
     }
     try { sessionStorage.setItem('eng800_today_cards', JSON.stringify(pool)); } catch(e){}
