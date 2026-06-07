@@ -4900,9 +4900,17 @@ document.addEventListener('keydown', function(e){
     const isInput = (tag === 'INPUT' || tag === 'TEXTAREA');
     if(!isInput){
       e.preventDefault();
-      // 현재 활성 화면 찾아서 홈으로
-      const screens = ['typing','shadowing','dictation','chapters','dashboard'];
-      for(const id of screens){
+      // 학습 중이면 확인 팝업, 아니면 바로 홈
+      const studyScreens = ['typing','shadowing','dictation','study'];
+      const otherScreens = ['chapters','dashboard','my-sentences','review'];
+      for(const id of studyScreens){
+        const el = document.getElementById(id);
+        if(el && el.classList.contains('active')){
+          confirmExit(()=>show('home'));
+          return;
+        }
+      }
+      for(const id of otherScreens){
         const el = document.getElementById(id);
         if(el && el.classList.contains('active')){
           show('home');
