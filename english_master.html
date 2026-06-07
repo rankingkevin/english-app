@@ -4564,15 +4564,40 @@ function isStudying(){
   });
 }
 
+let _exitPendingFn = null;
+
 function confirmExit(exitFn){
   // 완료 화면이면 바로 나가기
-  const doneAreas = ['done-area','typing-done','shadow-done','dict-done'];
-  const isDone = doneAreas.some(id => {
-    const el = document.getElementById(id);
-    return el && el.style.display !== 'none';
-  });
-  if(isDone){ exitFn(); return; }
-  if(confirm('학습을 중단하고 홈으로 나가시겠어요?\n진행 상황은 저장됩니다.')) exitFn();
+  const doneVisible = (function(){
+    // done-area: done-wrap CSS가 display:none → style로 직접 체크
+    const da = document.getElementById('done-area');
+    if(da && (da.style.display === 'flex' || da.style.display === 'block')) return true;
+    const td = document.getElementById('typing-done');
+    if(td && td.style.display !== 'none' && td.style.display !== '') return true;
+    return false;
+  })();
+  if(doneVisible){ exitFn(); return; }
+
+  // 커스텀 모달 표시
+  _exitPendingFn = exitFn;
+  const modal = document.getElementById('exit-confirm-modal');
+  if(modal) modal.style.display = 'flex';
+}
+
+// 모달 버튼 이벤트
+// 모달 버튼 직접 바인딩 (초기화 시 실행)
+function _initExitModal(){
+  const cancelBtn = document.getElementById('exit-cancel-btn');
+  const confirmBtn = document.getElementById('exit-confirm-btn');
+  if(cancelBtn) cancelBtn.onclick = function(){
+    document.getElementById('exit-confirm-modal').style.display = 'none';
+    _exitPendingFn = null;
+  };
+  if(confirmBtn) confirmBtn.onclick = function(){
+    document.getElementById('exit-confirm-modal').style.display = 'none';
+    if(_exitPendingFn) _exitPendingFn();
+    _exitPendingFn = null;
+  };
 }
 
 
@@ -4648,6 +4673,7 @@ if(window.speechSynthesis){
 applyKoEdits();
   applyEnEdits();
 updateHome();
+_initExitModal();
 
 // ════════════════════════════════════
 // 섀도잉 모드
@@ -5023,6 +5049,36 @@ document.addEventListener('keydown', function(e){
         border:none;border-radius:12px;
         color:#111;font-size:15px;font-weight:700;cursor:pointer;transition:.2s
       ">추가하기</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ 학습 중단 확인 모달 ══ -->
+<div id="exit-confirm-modal" style="
+  display:none;position:fixed;inset:0;z-index:99999;
+  background:rgba(0,0,0,.75);backdrop-filter:blur(6px);
+  align-items:center;justify-content:center;padding:24px
+">
+  <div style="
+    background:var(--card);border:1px solid var(--border);
+    border-radius:20px;padding:28px 24px;width:100%;max-width:340px;
+    display:flex;flex-direction:column;gap:16px;text-align:center
+  ">
+    <div style="font-size:32px">🚪</div>
+    <div style="font-family:var(--display);font-size:18px;font-weight:700">학습을 중단할까요?</div>
+    <div style="font-size:14px;color:var(--muted);line-height:1.7">지금까지 학습한 내용은<br>저장되어 있어요</div>
+    <div style="display:flex;gap:10px;margin-top:4px">
+      <button id="exit-cancel-btn" style="
+        flex:1;padding:14px;background:transparent;
+        border:1px solid var(--border);border-radius:12px;
+        color:var(--text);font-size:15px;font-weight:600;cursor:pointer
+      ">계속 학습</button>
+      <button id="exit-confirm-btn" style="
+        flex:1;padding:14px;background:var(--accent);
+        border:none;border-radius:12px;
+        color:#fff;font-size:15px;font-weight:700;cursor:pointer
+      ">나가기</button>
     </div>
   </div>
 </div>
