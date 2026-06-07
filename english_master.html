@@ -311,7 +311,7 @@ button{font-family:var(--sans)}
 <!-- ══ SHADOWING MODE ══ -->
 <div id="shadowing" class="screen">
   <div class="top-nav">
-    <button class="nav-back" onclick="exitShadowing()">←</button>
+    <button class="nav-back" onclick="exitShadowingConfirm()">←</button>
     <span class="nav-title" id="shadow-title">섀도잉</span>
     <span class="nav-counter" id="shadow-counter">0 / 0</span>
   </div>
@@ -361,7 +361,7 @@ button{font-family:var(--sans)}
 <!-- ══ DICTATION MODE ══ -->
 <div id="dictation" class="screen">
   <div class="top-nav">
-    <button class="nav-back" onclick="exitDictation()">←</button>
+    <button class="nav-back" onclick="exitDictationConfirm()">←</button>
     <span class="nav-title" id="dict-title">받아쓰기</span>
     <span class="nav-counter" id="dict-counter">0 / 0</span>
   </div>
@@ -421,7 +421,7 @@ button{font-family:var(--sans)}
 <!-- ══ MY SENTENCES ══ -->
 <div id="my-sentences" class="screen">
   <div style="display:flex;align-items:center;padding:16px 20px 16px 90px;border-bottom:1px solid var(--border);background:var(--surf);gap:12px;flex-shrink:0">
-    <button onclick="show('home')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:22px;padding:4px 10px;border-radius:8px">←</button>
+    <button onclick="confirmExit(()=>show('home'))" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:22px;padding:4px 10px;border-radius:8px">←</button>
     <span style="font-family:var(--display);font-size:16px;font-weight:700;flex:1">⭐ 내 문장 관리</span>
     <span id="my-sent-count" style="font-family:var(--mono);font-size:13px;color:var(--muted);background:var(--card);border:1px solid var(--border);padding:4px 12px;border-radius:20px">0개</span>
   </div>
@@ -550,7 +550,7 @@ button{font-family:var(--sans)}
 
 <div id="typing" class="screen">
   <div class="top-nav">
-    <button class="nav-back" onclick="exitTyping()">←</button>
+    <button class="nav-back" onclick="exitTypingConfirm()">←</button>
     <span class="nav-title" id="typing-title">타이핑 연습</span>
     <span class="nav-counter" id="typing-counter">0 / 0</span>
   </div>
@@ -4086,6 +4086,9 @@ function exitTyping(){
   if(inp) inp.disabled = false;
   show('home');
 }
+function exitTypingConfirm(){
+  confirmExit(exitTyping);
+}
 let SES = { cards:[], idx:0, flipped:false };
 
 function startStudy(chId){
@@ -4549,6 +4552,41 @@ function showToast(msg){
   setTimeout(() => t.classList.remove('show'), 2500);
 }
 
+
+// ════════════════════════════════════
+// 학습 중 홈 이탈 방지
+// ════════════════════════════════════
+function isStudying(){
+  const studying = ['typing','study','shadowing','dictation'];
+  return studying.some(id => {
+    const el = document.getElementById(id);
+    return el && el.classList.contains('active');
+  });
+}
+
+function confirmExit(exitFn){
+  // 완료 화면이면 바로 나가기
+  const doneAreas = ['done-area','typing-done','shadow-done','dict-done'];
+  const isDone = doneAreas.some(id => {
+    const el = document.getElementById(id);
+    return el && el.style.display !== 'none';
+  });
+  if(isDone){ exitFn(); return; }
+  if(confirm('학습을 중단하고 홈으로 나가시겠어요?\n진행 상황은 저장됩니다.')) exitFn();
+}
+
+
+// 브라우저 뒤로가기(스와이프/물리버튼) 학습 중 방지
+history.pushState(null, '', location.href);
+window.addEventListener('popstate', function(){
+  if(isStudying()){
+    history.pushState(null, '', location.href);
+    confirmExit(()=>{ show('home'); });
+  } else {
+    history.pushState(null, '', location.href);
+  }
+});
+
 // ── INIT ──
 // 레벨별 SRS 키 초기화
 window.LS_KEY_ACTIVE = 'eng800v2_srs_lv1';
@@ -4720,6 +4758,9 @@ function exitShadowing(){
   if(_audio){ _audio.pause(); _audio.onended = null; _audio = null; }
   show('home');
 }
+function exitShadowingConfirm(){
+  confirmExit(exitShadowing);
+}
 
 // ════════════════════════════════════
 // 받아쓰기 모드
@@ -4816,6 +4857,9 @@ function exitDictation(){
   const inp = document.getElementById('dict-input');
   if(inp) inp.disabled = false;
   show('home');
+}
+function exitDictationConfirm(){
+  confirmExit(exitDictation);
 }
 
 // 전역 키 — 타이핑 모드에서 결과창이 보일 때
