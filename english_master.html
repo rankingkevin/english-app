@@ -3726,6 +3726,10 @@ document.addEventListener('keydown', function(e){
   if(e.key === 'Escape' && document.getElementById('add-sent-modal')?.style.display === 'flex'){
     closeAddSentModal();
   }
+  if(e.key === 'Escape' && document.getElementById('exit-confirm-modal')?.style.display === 'flex'){
+    document.getElementById('exit-confirm-modal').style.display = 'none';
+    _exitPendingFn = null;
+  }
 });
 
 function addMySentence(){
@@ -4604,11 +4608,10 @@ function _initExitModal(){
 // 브라우저 뒤로가기(스와이프/물리버튼) 학습 중 방지
 history.pushState(null, '', location.href);
 window.addEventListener('popstate', function(){
+  history.pushState(null, '', location.href);
   if(isStudying()){
-    history.pushState(null, '', location.href);
+    // 정답/결과 화면이 보여도 학습 중으로 간주
     confirmExit(()=>{ show('home'); });
-  } else {
-    history.pushState(null, '', location.href);
   }
 });
 
@@ -4915,6 +4918,8 @@ document.addEventListener('keydown', function(e){
     // 모달이 열려있으면 키보드 단축키 무시
     const modal = document.getElementById('add-sent-modal');
     if(modal && modal.style.display === 'flex') return;
+    const exitModal = document.getElementById('exit-confirm-modal');
+    if(exitModal && exitModal.style.display === 'flex') return;
 
     const resultVisible = document.getElementById('typing-result').style.display !== 'none';
     const inp = document.getElementById('typing-input');
@@ -5069,12 +5074,12 @@ document.addEventListener('keydown', function(e){
     <div style="font-family:var(--display);font-size:18px;font-weight:700">학습을 중단할까요?</div>
     <div style="font-size:14px;color:var(--muted);line-height:1.7">지금까지 학습한 내용은<br>저장되어 있어요</div>
     <div style="display:flex;gap:10px;margin-top:4px">
-      <button id="exit-cancel-btn" style="
+      <button id="exit-cancel-btn" onclick="document.getElementById('exit-confirm-modal').style.display='none';_exitPendingFn=null;" style="
         flex:1;padding:14px;background:transparent;
         border:1px solid var(--border);border-radius:12px;
         color:var(--text);font-size:15px;font-weight:600;cursor:pointer
       ">계속 학습</button>
-      <button id="exit-confirm-btn" style="
+      <button id="exit-confirm-btn" onclick="document.getElementById('exit-confirm-modal').style.display='none';if(_exitPendingFn){_exitPendingFn();_exitPendingFn=null;}" style="
         flex:1;padding:14px;background:var(--accent);
         border:none;border-radius:12px;
         color:#fff;font-size:15px;font-weight:700;cursor:pointer
