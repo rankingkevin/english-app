@@ -302,6 +302,11 @@ button{font-family:var(--sans)}
     <button class="btn-secondary" id="home-dict-btn" style="border-color:rgba(78,203,113,.4);color:var(--a4)">👂 받아쓰기 모드</button>
     <button class="btn-secondary" id="hard-btn" onclick="startHardMode()" style="display:none;border-color:rgba(255,107,107,.4);color:var(--a2)">😓 취약 문장 집중 복습</button>
     <button class="btn-secondary" onclick="show('my-sentences')" style="border-color:rgba(255,217,61,.4);color:var(--a3)">⭐ 내 문장 관리</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn-secondary" onclick="backupData()" style="flex:1;border-color:rgba(78,203,113,.4);color:var(--a4)">📥 데이터 백업</button>
+      <button class="btn-secondary" onclick="document.getElementById('restore-input').click()" style="flex:1;border-color:rgba(255,159,67,.4);color:var(--a2)">📤 백업 복구</button>
+    </div>
+    <input type="file" id="restore-input" accept=".json" style="display:none" onchange="restoreData(event)">
     <button class="btn-secondary" id="home-review-btn" onclick="startReview()" style="display:none;border-color:rgba(255,198,0,.4);color:#ffc600">📋 한눈에 복습</button>
     <button class="btn-secondary" onclick="show('chapters')">📚 챕터별 선택 학습</button>
     <button class="btn-secondary" onclick="show('dashboard')">📊 진도 대시보드</button>
@@ -429,9 +434,9 @@ button{font-family:var(--sans)}
     <!-- 입력 폼 -->
     <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:10px">
       <div style="font-family:var(--mono);font-size:10px;color:var(--a3);letter-spacing:.2em;margin-bottom:4px">+ 새 문장 추가</div>
+      <input id="my-sit-input" placeholder="상황 메모 (예: 비즈니스, 여행)" style="width:100%;padding:12px 14px;background:var(--surf);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-size:15px;outline:none;transition:.2s" oninput="this.style.borderColor='var(--accent)'" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
       <input id="my-en-input" placeholder="영어 문장을 입력하세요" style="width:100%;padding:12px 14px;background:var(--surf);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-size:15px;outline:none;transition:.2s" oninput="this.style.borderColor='var(--accent)'" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
       <input id="my-ko-input" placeholder="한국어 뜻 (선택사항)" style="width:100%;padding:12px 14px;background:var(--surf);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-size:15px;outline:none;transition:.2s" oninput="this.style.borderColor='var(--accent)'" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
-      <input id="my-sit-input" placeholder="상황 메모 (선택사항, 예: 비즈니스)" style="width:100%;padding:12px 14px;background:var(--surf);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-size:15px;outline:none;transition:.2s" oninput="this.style.borderColor='var(--accent)'" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
       <button onclick="addMySentence()" style="padding:13px;background:var(--a3);border:none;border-radius:12px;color:#111;font-size:15px;font-weight:700;cursor:pointer;transition:.2s">+ 추가하기</button>
     </div>
     <!-- 학습 버튼 -->
@@ -706,6 +711,8 @@ button{font-family:var(--sans)}
           <button class="btn-secondary" onclick="startReview()" style="border-color:rgba(255,198,0,.4);color:#ffc600">📋 한눈에 복습</button>
           <div style="height:1px;background:var(--border);margin:4px 0"></div>
         </div>
+        <div style="height:1px;background:var(--border);margin:4px 0"></div>
+        <button onclick="backupData()" style="width:100%;padding:13px;background:rgba(78,203,113,.12);border:1px solid rgba(78,203,113,.4);border-radius:12px;color:var(--a4);font-size:14px;font-weight:600;cursor:pointer">📥 데이터 백업 저장</button>
         <button class="btn-primary" onclick="show('dashboard')">📊 결과 보기</button>
         <button class="btn-secondary" onclick="show('home')">🏠 홈으로</button>
       </div>
@@ -3679,9 +3686,12 @@ function _editEn(){
 const MY_SENT_KEY = 'eng800_my_sentences';
 const MY_SENT_CH = 99;   // 내 문장 챕터 ID
 const MY_SENT_NO_START = 9001; // 번호 시작점
+const MY_SRS_KEY = 'eng800_my_srs'; // 내 문장 SRS 키
 
 function loadMySents(){ try{ return JSON.parse(localStorage.getItem(MY_SENT_KEY)||'[]') }catch{ return [] } }
 function saveMySents(d){ try{ localStorage.setItem(MY_SENT_KEY, JSON.stringify(d)) }catch{} }
+function loadMySRS(){ try{ return JSON.parse(localStorage.getItem(MY_SRS_KEY)||'{}') }catch{ return {} } }
+function saveMySRS(d){ try{ localStorage.setItem(MY_SRS_KEY, JSON.stringify(d)) }catch{} }
 
 
 function openAddSentModal(){
@@ -3800,6 +3810,25 @@ function renderMySentList(){
     </div>`).join('');
 }
 
+// 내 문장 SRS 스케줄 적용
+function scheduleMySent(no, rating){
+  const srs = loadMySRS();
+  const c = srs[no] || {interval:1, rep:0, ef:2.5, due:0, streak5:0};
+  const updated = scheduleCard(c, rating);
+  srs[no] = updated;
+  saveMySRS(srs);
+}
+
+function getMySentCard(no){
+  const srs = loadMySRS();
+  return srs[no] || {interval:1, rep:0, ef:2.5, due:0, seen:false, streak5:0};
+}
+
+function isMySentDue(no){
+  const c = getMySentCard(no);
+  return !c.seen || c.due <= Date.now();
+}
+
 function getMySentsAsCards(){
   return loadMySents().map(s => ({...s}));
 }
@@ -3861,7 +3890,6 @@ function startTyping(chId){
       const basePool = [...(window.S||S)]
         .filter(s => !isMastered(getCard(_srs, s.no)))
         .sort(()=>Math.random()-.5);
-      const myPool = [...myCards].sort(()=>Math.random()-.5);
       // 복습 대기 문장 우선 배치
       const dueCards = basePool.filter(s => {
         const c = getCard(_srs, s.no);
@@ -3874,9 +3902,11 @@ function startTyping(chId){
       });
       // 복습대기 → 신규 → 나머지 순으로 채우되 최대 25개
       const baseSorted = [...dueCards, ...newCards, ...restCards].slice(0, 25);
-      // 내 문장 최대 5개 포함
-      const mySlice = myPool.slice(0, Math.min(5, myPool.length));
-      pool = [...mySlice, ...baseSorted].sort(()=>Math.random()-.5);
+      // 내 문장: SRS 기반으로 due인 것만 포함 (최대 5개)
+      const myDue = myCards.filter(s => isMySentDue(s.no));
+      const myNew = myCards.filter(s => !getMySentCard(s.no).seen);
+      const myPool = [...myDue, ...myNew].sort(()=>Math.random()-.5).slice(0, 5);
+      pool = [...myPool, ...baseSorted].sort(()=>Math.random()-.5);
       try { localStorage.setItem(TODAY_POOL_KEY, JSON.stringify({date:todayStr, cards:pool})); } catch(e){}
     }
     try { sessionStorage.setItem('eng800_today_cards', JSON.stringify(pool)); } catch(e){}
@@ -3961,9 +3991,14 @@ function submitTyping(){
   // 자동 정확도 계산 → 5단계 SRS 자동 분류
   const score = _calcScore(userText, s.en);
   const rating = score>=90?5 : score>=70?4 : score>=50?3 : score>=20?2 : 1;
-  const srs = loadSRS();
-  srs[s.no] = scheduleCard(getCard(srs, s.no), rating);
-  saveSRS(srs);
+  if(s.ch === MY_SENT_CH){
+    // 내 문장은 별도 SRS 키에 저장
+    scheduleMySent(s.no, rating);
+  } else {
+    const srs = loadSRS();
+    srs[s.no] = scheduleCard(getCard(srs, s.no), rating);
+    saveSRS(srs);
+  }
   updateHome();
   _showScoreBox(score, rating, s.no);
 
@@ -4133,9 +4168,8 @@ function renderCard(){
   document.getElementById('rate-row').className = 'rate-row hidden';
   SES.flipped = false;
 
-  const srs = loadSRS();
-  const card = getCard(srs, s.no);
   const pill = document.getElementById('srs-pill');
+  const card = s.ch === MY_SENT_CH ? getMySentCard(s.no) : getCard(loadSRS(), s.no);
   if(!card.seen){
     pill.textContent = '✨ 첫 학습';
     pill.style.color = 'var(--a4)';
@@ -4159,9 +4193,13 @@ function flipCard(){
 function rate(r){
   if(!SES.flipped) return;
   const s = SES.cards[SES.idx];
-  const srs = loadSRS();
-  srs[s.no] = scheduleCard(getCard(srs, s.no), r);
-  saveSRS(srs);
+  if(s.ch === MY_SENT_CH){
+    scheduleMySent(s.no, r);
+  } else {
+    const srs = loadSRS();
+    srs[s.no] = scheduleCard(getCard(srs, s.no), r);
+    saveSRS(srs);
+  }
 
   const meta = loadMeta();
   meta.total = (meta.total||0) + 1;
@@ -4615,6 +4653,104 @@ window.addEventListener('popstate', function(){
   }
 });
 
+
+// ════════════════════════════════════
+// 데이터 백업 & 복구
+// ════════════════════════════════════
+function backupData(){
+  try {
+    const data = {
+      version: 'eng800_backup_v1',
+      date: new Date().toISOString(),
+      srs_lv1: localStorage.getItem('eng800v2_srs_lv1') || '{}',
+      srs_lv2: localStorage.getItem('eng800v2_srs_lv2') || '{}',
+      srs_lv3: localStorage.getItem('eng800v2_srs_lv3') || '{}',
+      meta:    localStorage.getItem('eng800v2_meta') || '{}',
+      ko_edits: localStorage.getItem('eng800_ko_edits') || '{}',
+      en_edits: localStorage.getItem('eng800_en_edits') || '{}',
+      my_sentences: localStorage.getItem('eng800_my_sentences') || '[]',
+      my_srs: localStorage.getItem('eng800_my_srs') || '{}',
+      selected_level: localStorage.getItem('eng800_selected_level') || '1',
+    };
+
+    // 날짜별 학습 히스토리 (eng800_pool_*)
+    const poolKeys = [];
+    for(let i=0; i<localStorage.length; i++){
+      const k = localStorage.key(i);
+      if(k && k.startsWith('eng800_pool_')) poolKeys.push(k);
+    }
+    data.pool_history = {};
+    poolKeys.forEach(k => { data.pool_history[k] = localStorage.getItem(k); });
+
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const dateStr = new Date().toISOString().slice(0,10);
+    a.href = url;
+    a.download = 'english_master_backup_' + dateStr + '.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    // 마지막 백업 시간 기록
+    localStorage.setItem('eng800_last_backup', new Date().toISOString());
+    showToast('✅ 백업 저장 완료! 파일앱에서 확인하세요');
+  } catch(e){
+    showToast('❌ 백업 실패: ' + e.message);
+  }
+}
+
+function restoreData(event){
+  const file = event.target.files[0];
+  if(!file){ return; }
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try {
+      const data = JSON.parse(e.target.result);
+      if(!data.version || !data.version.startsWith('eng800_backup')){
+        showToast('❌ 올바른 백업 파일이 아니에요');
+        return;
+      }
+      if(!confirm('백업 데이터를 복구할까요?\n현재 데이터는 덮어써져요.')){
+        event.target.value = '';
+        return;
+      }
+
+      // 데이터 복구
+      if(data.srs_lv1) localStorage.setItem('eng800v2_srs_lv1', data.srs_lv1);
+      if(data.srs_lv2) localStorage.setItem('eng800v2_srs_lv2', data.srs_lv2);
+      if(data.srs_lv3) localStorage.setItem('eng800v2_srs_lv3', data.srs_lv3);
+      if(data.meta)    localStorage.setItem('eng800v2_meta', data.meta);
+      if(data.ko_edits) localStorage.setItem('eng800_ko_edits', data.ko_edits);
+      if(data.en_edits) localStorage.setItem('eng800_en_edits', data.en_edits);
+      if(data.my_sentences) localStorage.setItem('eng800_my_sentences', data.my_sentences);
+      if(data.my_srs) localStorage.setItem('eng800_my_srs', data.my_srs);
+      if(data.selected_level) localStorage.setItem('eng800_selected_level', data.selected_level);
+
+      // 날짜별 히스토리 복구
+      if(data.pool_history){
+        Object.keys(data.pool_history).forEach(k => {
+          localStorage.setItem(k, data.pool_history[k]);
+        });
+      }
+
+      event.target.value = '';
+      applyKoEdits();
+      applyEnEdits();
+      const lv = parseInt(data.selected_level||'1');
+      if(lv>=1&&lv<=3) selectLevel(lv);
+      updateHome();
+      showToast('✅ 복구 완료! 학습 기록이 돌아왔어요 🎉');
+    } catch(err){
+      showToast('❌ 복구 실패: ' + err.message);
+      event.target.value = '';
+    }
+  };
+  reader.readAsText(file);
+}
+
 // ── INIT ──
 // 레벨별 SRS 키 초기화
 window.LS_KEY_ACTIVE = 'eng800v2_srs_lv1';
@@ -4866,9 +5002,14 @@ function submitDict(){
   setTimeout(()=>_speakText(s.en, true), 400);
   const score = _calcScore(userText, s.en);
   const rating = score>=90?5 : score>=70?4 : score>=50?3 : score>=20?2 : 1;
-  const srs = loadSRS();
-  srs[s.no] = scheduleCard(getCard(srs, s.no), rating);
-  saveSRS(srs); updateHome();
+  if(s.ch === MY_SENT_CH){
+    // 내 문장은 별도 SRS 키에 저장
+    scheduleMySent(s.no, rating);
+  } else {
+    const srs = loadSRS();
+    srs[s.no] = scheduleCard(getCard(srs, s.no), rating);
+    saveSRS(srs);
+  } updateHome();
   const emojis = ['','😓','😕','🙂','😊','🎯'];
   const colors = ['','#ff6b6b','#ff9f43','#ffd93d','#4ecb71','#7c6fff'];
   const msgs = ['','많이 달라요','절반 정도','거의 맞아요','잘 들었어요!','완벽해요!'];
@@ -5033,19 +5174,19 @@ document.addEventListener('keydown', function(e){
       <div style="font-family:var(--display);font-size:17px;font-weight:700">✚ 새 문장 추가</div>
       <button onclick="closeAddSentModal()" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;padding:4px 8px;border-radius:8px">✕</button>
     </div>
+    <input id="modal-sit-input" placeholder="상황 메모 (예: 비즈니스, 여행)" style="
+      width:100%;padding:13px 14px;
+      background:var(--surf);border:1.5px solid var(--border);
+      border-radius:10px;color:var(--text);font-size:15px;outline:none;transition:.2s
+    " oninput="this.style.borderColor='var(--accent)'" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
+    onkeydown="if(event.key==='Enter')document.getElementById('modal-en-input').focus()">
     <input id="modal-en-input" placeholder="영어 문장을 입력하세요" style="
       width:100%;padding:13px 14px;
       background:var(--surf);border:1.5px solid var(--border);
       border-radius:10px;color:var(--text);font-size:15px;outline:none;transition:.2s
     " oninput="this.style.borderColor='var(--accent)'" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
-    onkeydown="if(e.key==='Enter')document.getElementById('modal-ko-input').focus()">
+    onkeydown="if(event.key==='Enter')document.getElementById('modal-ko-input').focus()">
     <input id="modal-ko-input" placeholder="한국어 뜻 (선택사항)" style="
-      width:100%;padding:13px 14px;
-      background:var(--surf);border:1.5px solid var(--border);
-      border-radius:10px;color:var(--text);font-size:15px;outline:none;transition:.2s
-    " oninput="this.style.borderColor='var(--accent)'" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
-    onkeydown="if(event.key==='Enter')submitAddSentModal()">
-    <input id="modal-sit-input" placeholder="상황 메모 (선택사항)" style="
       width:100%;padding:13px 14px;
       background:var(--surf);border:1.5px solid var(--border);
       border-radius:10px;color:var(--text);font-size:15px;outline:none;transition:.2s
