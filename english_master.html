@@ -297,7 +297,8 @@ button{font-family:var(--sans)}
       </div>
     </div>
 
-    <button class="btn-primary" onclick="startTyping(null)">🎯 오늘 학습 시작</button>
+    <button class="btn-primary" onclick="startTyping(null)" id="start-study-btn">🎯 오늘 학습 시작</button>
+    <button id="resume-study-btn" onclick="resumeStudy()" style="display:none;width:100%;padding:16px;background:rgba(124,111,255,.15);border:1px solid rgba(124,111,255,.4);border-radius:14px;color:var(--accent);font-size:16px;font-weight:700;cursor:pointer;margin-bottom:0">▶ 오늘 학습 이어하기</button>
     <button class="btn-secondary" id="home-shadow-btn" style="border-color:rgba(124,111,255,.4);color:var(--accent)">🎤 섀도잉 모드</button>
     <button class="btn-secondary" id="home-dict-btn" style="border-color:rgba(78,203,113,.4);color:var(--a4)">👂 받아쓰기 모드</button>
     <button class="btn-secondary" id="hard-btn" onclick="startHardMode()" style="display:none;border-color:rgba(255,107,107,.4);color:var(--a2)">😓 취약 문장 집중 복습</button>
@@ -323,11 +324,30 @@ button{font-family:var(--sans)}
   <div class="study-body">
     <div class="prog-wrap"><div class="prog-fill" id="shadow-prog" style="width:0%"></div></div>
 
+    <!-- 모드 토글 -->
+    <div style="display:flex;gap:8px;justify-content:center">
+      <button id="shadow-mode-listen" onclick="setShadowMode('listen')" style="flex:1;padding:9px;background:var(--accent);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:600;cursor:pointer">🔊 듣고 따라하기</button>
+      <button id="shadow-mode-output" onclick="setShadowMode('output')" style="flex:1;padding:9px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--muted);font-size:13px;cursor:pointer">🗣 한국어→영어</button>
+    </div>
+
     <!-- 카드 -->
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:20px;padding:32px 24px;text-align:center;min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px">
+    <div onclick="shadowFlipCard()" style="background:var(--card);border:1px solid var(--border);border-radius:20px;padding:32px 24px;text-align:center;min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;cursor:pointer;transition:.2s" id="shadow-card">
       <div class="sit-pill" id="shadow-sit">—</div>
-      <div style="font-size:14px;color:var(--muted)" id="shadow-ko">—</div>
-      <div style="font-family:var(--display);font-size:clamp(18px,4vw,26px);font-weight:700;color:var(--text);line-height:1.5" id="shadow-en">—</div>
+      <!-- 듣고 따라하기 모드 -->
+      <div id="shadow-listen-area">
+        <div style="font-size:14px;color:var(--muted);margin-bottom:8px" id="shadow-ko">—</div>
+        <div style="font-family:var(--display);font-size:clamp(18px,4vw,26px);font-weight:700;color:var(--text);line-height:1.5" id="shadow-en">—</div>
+      </div>
+      <!-- 한국어→영어 모드 -->
+      <div id="shadow-output-area" style="display:none">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:8px">🇰🇷 한국어를 보고 영어로 말해보세요</div>
+        <div style="font-size:22px;font-weight:700;color:var(--text);line-height:1.6" id="shadow-ko-q">—</div>
+        <div id="shadow-en-reveal" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
+          <div style="font-size:12px;color:var(--a4);margin-bottom:6px">✅ 정답</div>
+          <div style="font-family:var(--display);font-size:clamp(16px,4vw,22px);font-weight:700;color:var(--text);line-height:1.5" id="shadow-en-answer">—</div>
+        </div>
+        <div id="shadow-tap-hint" style="font-size:11px;color:var(--dim);margin-top:12px">탭하면 정답 공개</div>
+      </div>
     </div>
 
     <!-- 컨트롤 -->
@@ -437,7 +457,10 @@ button{font-family:var(--sans)}
       <input id="my-sit-input" placeholder="상황 메모 (예: 비즈니스, 여행)" style="width:100%;padding:12px 14px;background:var(--surf);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-size:15px;outline:none;transition:.2s" oninput="this.style.borderColor='var(--accent)'" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
       <input id="my-en-input" placeholder="영어 문장을 입력하세요" style="width:100%;padding:12px 14px;background:var(--surf);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-size:15px;outline:none;transition:.2s" oninput="this.style.borderColor='var(--accent)'" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
       <input id="my-ko-input" placeholder="한국어 뜻 (선택사항)" style="width:100%;padding:12px 14px;background:var(--surf);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-size:15px;outline:none;transition:.2s" oninput="this.style.borderColor='var(--accent)'" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
-      <button onclick="addMySentence()" style="padding:13px;background:var(--a3);border:none;border-radius:12px;color:#111;font-size:15px;font-weight:700;cursor:pointer;transition:.2s">+ 추가하기</button>
+      <div style="display:flex;gap:8px">
+        <button onclick="addMySentence()" style="flex:2;padding:13px;background:var(--a3);border:none;border-radius:12px;color:#111;font-size:15px;font-weight:700;cursor:pointer;transition:.2s">+ 추가하기</button>
+        <button onclick="aiGenerate()" style="flex:1;padding:13px;background:rgba(124,111,255,.15);border:1px solid rgba(124,111,255,.4);border-radius:12px;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer">🤖 AI 생성</button>
+      </div>
     </div>
     <!-- 학습 버튼 -->
     <div style="display:flex;gap:10px">
@@ -679,6 +702,32 @@ button{font-family:var(--sans)}
                onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
               ✚ 새 문장
             </button>
+          </div>
+          <!-- AI 기능 버튼 -->
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button onclick="aiCorrect()" style="
+              background:rgba(124,111,255,.1);border:1px solid rgba(124,111,255,.4);
+              color:var(--accent);padding:8px 14px;border-radius:10px;
+              cursor:pointer;font-size:12px;transition:.2s;display:flex;align-items:center;gap:5px
+            ">🤖 AI 교정</button>
+            <button onclick="aiSimilar()" style="
+              background:rgba(78,203,113,.1);border:1px solid rgba(78,203,113,.4);
+              color:var(--a4);padding:8px 14px;border-radius:10px;
+              cursor:pointer;font-size:12px;transition:.2s;display:flex;align-items:center;gap:5px
+            ">💡 유사 표현</button>
+            <button onclick="aiExplain()" style="
+              background:rgba(255,159,67,.1);border:1px solid rgba(255,159,67,.4);
+              color:var(--a2);padding:8px 14px;border-radius:10px;
+              cursor:pointer;font-size:12px;transition:.2s;display:flex;align-items:center;gap:5px
+            ">❓ 왜 틀렸지?</button>
+          </div>
+          <!-- AI 결과 패널 -->
+          <div id="ai-result-panel" style="display:none;background:var(--card);border:1px solid rgba(124,111,255,.3);border-radius:14px;padding:18px;flex-direction:column;gap:10px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:.2em" id="ai-panel-title">🤖 AI 분석</div>
+              <button onclick="document.getElementById('ai-result-panel').style.display='none'" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px">✕</button>
+            </div>
+            <div id="ai-result-content" style="font-size:14px;color:var(--text);line-height:1.8"></div>
           </div>
         </div>
 
@@ -3910,6 +3959,8 @@ function startTyping(chId){
       try { localStorage.setItem(TODAY_POOL_KEY, JSON.stringify({date:todayStr, cards:pool})); } catch(e){}
     }
     try { sessionStorage.setItem('eng800_today_cards', JSON.stringify(pool)); } catch(e){}
+    // 세션 진행 상황 초기화
+    try { localStorage.removeItem('eng800_session_progress'); } catch(e){}
   } else {
     pool = (window.S||S).filter(s=>s.ch===chId).sort(()=>Math.random()-.5).slice(0,30);
   }
@@ -4082,6 +4133,15 @@ function typingNext(){
   const inp = document.getElementById('typing-input');
   if(inp) inp.disabled = false;
   TSES.idx++;
+  // 이어하기용 진행 상황 저장
+  if(!TSES.chId){
+    try {
+      localStorage.setItem('eng800_session_progress', JSON.stringify({
+        idx: TSES.idx,
+        date: new Date().toISOString().slice(0,10)
+      }));
+    } catch(e){}
+  }
   renderTypingCard();
   updateHome();
 }
@@ -4246,6 +4306,16 @@ function updateHome(){
   const hardBtn = document.getElementById('hard-btn');
   if(hardBtn) hardBtn.style.display = hard > 0 ? 'block' : 'none';
 
+  // 이어하기 버튼: 오늘 진행 중인 세션 있을 때만 표시
+  try {
+    const progress = JSON.parse(localStorage.getItem('eng800_session_progress')||'null');
+    const today = new Date().toISOString().slice(0,10);
+    const cached = JSON.parse(localStorage.getItem('eng800_today_pool')||'null');
+    const hasResume = progress && progress.date===today && cached && cached.date===today && progress.idx>0 && progress.idx<(cached.cards?.length||0);
+    const resumeBtn = document.getElementById('resume-study-btn');
+    if(resumeBtn) resumeBtn.style.display = hasResume ? 'block' : 'none';
+  } catch(e){}
+
   // 오늘 학습 데이터가 있으면 섀도잉/받아쓰기 버튼에 복습 표시
   const hasTodayCards = (function(){
     try{
@@ -4306,6 +4376,23 @@ function renderChapters(){
   const srs = loadSRS();
   const el = document.getElementById('ch-list');
   el.innerHTML = '';
+  // 취약 패턴 분석 섹션
+  const patternSection = document.createElement('div');
+  patternSection.style.cssText = 'background:var(--card);border:1px solid rgba(255,159,67,.3);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:12px';
+  patternSection.innerHTML = `
+    <div style="font-family:var(--mono);font-size:10px;color:var(--a2);letter-spacing:.2em">😓 취약문장 패턴 분석</div>
+    ${analyzeWeakPatterns()}
+  `;
+  el.appendChild(patternSection);
+
+  // 학습 캘린더 섹션
+  const calSection = document.createElement('div');
+  calSection.style.cssText = 'background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px';
+  calSection.innerHTML = `
+    <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.2em;margin-bottom:12px">📅 학습 캘린더</div>
+    ${renderCalendar()}
+  `;
+  el.appendChild(calSection);
   (window.CHAPTERS_ACTIVE||CHAPTERS).forEach(ch => {
     const total = S.filter(s=>s.ch===ch.id).length;
     const done  = S.filter(s=>s.ch===ch.id && getCard(srs,s.no).seen).length;
@@ -4336,6 +4423,99 @@ function renderChapters(){
 // ════════════════════════════════════
 // DASHBOARD
 // ════════════════════════════════════
+
+
+// 학습 캘린더 렌더링 (GitHub 잔디 스타일)
+function renderCalendar(){
+  const today = new Date();
+  const days = [];
+  // 최근 70일
+  for(let i=69; i>=0; i--){
+    const d = new Date(today);
+    d.setDate(d.getDate()-i);
+    days.push(d.toISOString().slice(0,10));
+  }
+
+  // 학습 기록 확인
+  const studied = new Set();
+  for(let i=0; i<localStorage.length; i++){
+    const k = localStorage.key(i);
+    if(k && k.startsWith('eng800_pool_')){
+      studied.add(k.replace('eng800_pool_',''));
+    }
+  }
+  // today_pool도 확인
+  try {
+    const tp = JSON.parse(localStorage.getItem('eng800_today_pool')||'null');
+    if(tp?.date) studied.add(tp.date);
+  } catch(e){}
+
+  const todayStr = today.toISOString().slice(0,10);
+  const cells = days.map(d => {
+    const isToday = d === todayStr;
+    const hasStudy = studied.has(d);
+    const bg = isToday ? (hasStudy?'var(--a4)':'var(--accent)') : hasStudy ? 'var(--a4)' : 'var(--border)';
+    const border = isToday ? '2px solid var(--accent)' : 'none';
+    return `<div title="${d}" style="width:14px;height:14px;border-radius:3px;background:${bg};border:${border};flex-shrink:0"></div>`;
+  }).join('');
+
+  const streak = studied.size;
+  return `
+    <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.15em;margin-bottom:10px">최근 70일 학습 기록 · 총 ${streak}일</div>
+    <div style="display:flex;flex-wrap:wrap;gap:3px">${cells}</div>
+    <div style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:11px;color:var(--muted)">
+      <div style="width:12px;height:12px;border-radius:2px;background:var(--border)"></div><span>미학습</span>
+      <div style="width:12px;height:12px;border-radius:2px;background:var(--a4);margin-left:8px"></div><span>학습완료</span>
+      <div style="width:12px;height:12px;border-radius:2px;background:var(--accent);border:2px solid var(--accent);margin-left:8px"></div><span>오늘</span>
+    </div>
+  `;
+}
+
+// 취약문장 패턴 분석
+function analyzeWeakPatterns(){
+  const srs = loadSRS();
+  const sentences = window.S || S;
+  const hardWords = getHardWords();
+  if(!hardWords.length) return '<div style="color:var(--muted);font-size:14px;text-align:center;padding:16px">취약 문장이 없어요 🎉</div>';
+
+  // 챕터별 취약 분포
+  const chMap = {};
+  hardWords.forEach(s => {
+    const ch = CHAPTERS_ACTIVE?.find(c=>c.id===s.ch) || CHAPTERS.find(c=>c.id===s.ch);
+    const name = ch?.name || 'Ch.'+s.ch;
+    chMap[name] = (chMap[name]||0)+1;
+  });
+  const sorted = Object.entries(chMap).sort((a,b)=>b[1]-a[1]).slice(0,5);
+
+  // hardCount 높은 TOP5 문장
+  const top5 = [...hardWords]
+    .sort((a,b)=>(srs[b.no]?.hardCount||0)-(srs[a.no]?.hardCount||0))
+    .slice(0,5);
+
+  const chRows = sorted.map(([name,cnt]) => `
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="font-size:12px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${name}</div>
+      <div style="height:6px;width:${Math.round(cnt/hardWords.length*100)}%;max-width:120px;background:var(--a2);border-radius:3px;min-width:4px"></div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--a2)">${cnt}개</div>
+    </div>`).join('');
+
+  const top5Rows = top5.map(s => `
+    <div style="background:var(--surf);padding:10px 14px;border-radius:10px;display:flex;align-items:center;justify-content:space-between;gap:8px">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.en}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">${s.ko}</div>
+      </div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--a2);flex-shrink:0">❌ ${srs[s.no]?.hardCount||0}회</div>
+    </div>`).join('');
+
+  return `
+    <div style="display:flex;flex-direction:column;gap:10px">${chRows}</div>
+    <div style="height:1px;background:var(--border);margin:4px 0"></div>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.15em;margin-bottom:4px">자주 틀리는 문장 TOP 5</div>
+    <div style="display:flex;flex-direction:column;gap:6px">${top5Rows}</div>
+  `;
+}
+
 function renderDashboard(){
   const srs = loadSRS();
   const meta = loadMeta();
@@ -4654,6 +4834,28 @@ window.addEventListener('popstate', function(){
 });
 
 
+
+// 오늘 학습 이어하기
+function resumeStudy(){
+  try {
+    const progress = JSON.parse(localStorage.getItem('eng800_session_progress')||'null');
+    const today = new Date().toISOString().slice(0,10);
+    if(!progress || progress.date !== today){ startTyping(null); return; }
+
+    const cached = JSON.parse(localStorage.getItem('eng800_today_pool')||'null');
+    if(!cached || cached.date !== today){ startTyping(null); return; }
+
+    const pool = cached.cards;
+    TSES = { cards: pool, idx: progress.idx, chId: null };
+    document.getElementById('typing-title').textContent = '타이핑 연습';
+    try { sessionStorage.setItem('eng800_today_cards', JSON.stringify(pool)); } catch(e){}
+    resetTimer();
+    show('typing');
+    renderTypingCard();
+    showToast('▶ 이어서 학습해요! (' + progress.idx + '/' + pool.length + ')');
+  } catch(e){ startTyping(null); }
+}
+
 // ════════════════════════════════════
 // 데이터 백업 & 복구
 // ════════════════════════════════════
@@ -4749,6 +4951,113 @@ function restoreData(event){
     }
   };
   reader.readAsText(file);
+}
+
+
+// ════════════════════════════════════
+// Gemini AI 기능
+// ════════════════════════════════════
+const GEMINI_PROXY = 'https://english-ai-iota.vercel.app/api/gemini';
+
+async function callGemini(prompt, type){
+  try {
+    const res = await fetch(GEMINI_PROXY, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({prompt, type})
+    });
+    if(!res.ok) throw new Error('서버 오류 ' + res.status);
+    return await res.json();
+  } catch(e) {
+    showToast('❌ AI 연결 실패: ' + e.message);
+    return null;
+  }
+}
+
+function showAIPanel(title, html){
+  const panel = document.getElementById('ai-result-panel');
+  const titleEl = document.getElementById('ai-panel-title');
+  const content = document.getElementById('ai-result-content');
+  if(!panel) return;
+  titleEl.textContent = title;
+  content.innerHTML = html;
+  panel.style.display = 'flex';
+  panel.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function getTypingContext(){
+  const s = TSES.cards[TSES.idx - 1] || TSES.cards[TSES.idx];
+  const userInput = (document.getElementById('typing-input')||{}).value || '';
+  const answer = document.getElementById('typing-answer')?.textContent || '';
+  return {s, userInput, answer};
+}
+
+// 🤖 AI 교정
+async function aiCorrect(){
+  const {s, userInput, answer} = getTypingContext();
+  if(!answer) { showToast('먼저 답을 제출해주세요'); return; }
+  showAIPanel('🤖 AI 교정 중...', '<div style="color:var(--muted)">분석 중...</div>');
+  const prompt = `Student answer: "${userInput}"\nCorrect answer: "${answer}"\nKorean meaning: "${s?.ko||''}"`;
+  const data = await callGemini(prompt, 'correct');
+  if(!data) return;
+  const isOk = data.is_correct;
+  const html = `
+    <div style="font-size:20px;margin-bottom:8px">${isOk ? '✅ 자연스러워요!' : '⚠️ 개선 포인트'}</div>
+    <div style="color:var(--text);margin-bottom:8px">${data.feedback||''}</div>
+    ${data.corrections ? `<div style="background:var(--surf);padding:10px 14px;border-radius:8px;margin-bottom:8px;font-family:var(--mono);font-size:13px;color:var(--a4)">${data.corrections}</div>` : ''}
+    ${data.tip ? `<div style="font-size:12px;color:var(--muted);border-top:1px solid var(--border);padding-top:8px;margin-top:4px">💡 ${data.tip}</div>` : ''}
+  `;
+  showAIPanel('🤖 AI 교정', html);
+}
+
+// 💡 유사 표현
+async function aiSimilar(){
+  const {s, answer} = getTypingContext();
+  if(!answer) { showToast('먼저 답을 제출해주세요'); return; }
+  showAIPanel('💡 유사 표현 로딩 중...', '<div style="color:var(--muted)">비슷한 표현 찾는 중...</div>');
+  const data = await callGemini(answer, 'similar');
+  if(!data || !data.expressions) return;
+  const levelColor = {easy:'var(--a4)', medium:'var(--a3)', hard:'var(--a2)'};
+  const html = data.expressions.map(e => `
+    <div style="background:var(--surf);padding:10px 14px;border-radius:10px;display:flex;flex-direction:column;gap:4px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:14px;font-weight:600;color:var(--text)">${e.en}</div>
+        <div style="font-size:10px;color:${levelColor[e.level]||'var(--muted)'};font-family:var(--mono)">${e.level}</div>
+      </div>
+      <div style="font-size:12px;color:var(--muted)">${e.ko}</div>
+    </div>
+  `).join('');
+  showAIPanel('💡 유사 표현 4가지', `<div style="display:flex;flex-direction:column;gap:8px">${html}</div>`);
+}
+
+// ❓ 왜 틀렸지?
+async function aiExplain(){
+  const {s, userInput, answer} = getTypingContext();
+  if(!answer) { showToast('먼저 답을 제출해주세요'); return; }
+  showAIPanel('❓ 분석 중...', '<div style="color:var(--muted)">오류 분석 중...</div>');
+  const prompt = `Student wrote: "${userInput}"\nCorrect: "${answer}"`;
+  const data = await callGemini(prompt, 'explain');
+  if(!data) return;
+  const html = `
+    <div style="margin-bottom:10px">${data.reason||''}</div>
+    ${data.key_point ? `<div style="background:rgba(255,159,67,.1);border:1px solid rgba(255,159,67,.3);padding:10px 14px;border-radius:8px;color:var(--a2);font-size:13px">🎯 ${data.key_point}</div>` : ''}
+    ${data.example ? `<div style="font-family:var(--mono);font-size:13px;color:var(--a4);margin-top:6px">${data.example}</div>` : ''}
+  `;
+  showAIPanel('❓ 틀린 이유', html);
+}
+
+// 🤖 AI 문장 생성 (내 문장 관리)
+async function aiGenerate(){
+  const sit = document.getElementById('my-sit-input')?.value.trim();
+  if(!sit) { showToast('상황 메모를 먼저 입력해주세요!'); return; }
+  showToast('🤖 AI가 문장 생성 중...');
+  const data = await callGemini(sit, 'generate');
+  if(!data || !data.en) return;
+  const enInput = document.getElementById('my-en-input');
+  const koInput = document.getElementById('my-ko-input');
+  if(enInput) { enInput.value = data.en; enInput.style.borderColor='var(--accent)'; }
+  if(koInput) { koInput.value = data.ko; koInput.style.borderColor='var(--accent)'; }
+  showToast('✅ AI 문장 생성 완료!');
 }
 
 // ── INIT ──
@@ -4854,7 +5163,47 @@ function renderShadowCard(autoPlay){
   document.getElementById('shadow-sit').textContent = s.sit;
   document.getElementById('shadow-ko').textContent = s.ko;
   document.getElementById('shadow-en').textContent = s.en;
-  if(autoPlay) setTimeout(()=>shadowSpeak(), 400);
+  // 한국어→영어 모드
+  document.getElementById('shadow-ko-q').textContent = s.ko;
+  document.getElementById('shadow-en-answer').textContent = s.en;
+  document.getElementById('shadow-en-reveal').style.display = 'none';
+  document.getElementById('shadow-tap-hint').style.display = '';
+  if(autoPlay && SHADOW.mode !== 'output') setTimeout(()=>shadowSpeak(), 400);
+}
+
+
+// 섀도잉 모드 전환
+SHADOW.mode = 'listen'; // 기본: 듣고 따라하기
+
+function setShadowMode(mode){
+  SHADOW.mode = mode;
+  const listenBtn = document.getElementById('shadow-mode-listen');
+  const outputBtn = document.getElementById('shadow-mode-output');
+  const listenArea = document.getElementById('shadow-listen-area');
+  const outputArea = document.getElementById('shadow-output-area');
+  if(mode === 'listen'){
+    listenBtn.style.background = 'var(--accent)'; listenBtn.style.color = '#fff'; listenBtn.style.border = 'none';
+    outputBtn.style.background = 'var(--card)'; outputBtn.style.color = 'var(--muted)'; outputBtn.style.border = '1px solid var(--border)';
+    listenArea.style.display = ''; outputArea.style.display = 'none';
+  } else {
+    outputBtn.style.background = 'var(--accent)'; outputBtn.style.color = '#fff'; outputBtn.style.border = 'none';
+    listenBtn.style.background = 'var(--card)'; listenBtn.style.color = 'var(--muted)'; listenBtn.style.border = '1px solid var(--border)';
+    listenArea.style.display = 'none'; outputArea.style.display = '';
+    // 정답 숨기기
+    document.getElementById('shadow-en-reveal').style.display = 'none';
+    document.getElementById('shadow-tap-hint').style.display = '';
+  }
+}
+
+function shadowFlipCard(){
+  if(SHADOW.mode !== 'output') return;
+  const reveal = document.getElementById('shadow-en-reveal');
+  const hint = document.getElementById('shadow-tap-hint');
+  if(reveal.style.display === 'none'){
+    reveal.style.display = '';
+    hint.style.display = 'none';
+    shadowSpeak();
+  }
 }
 
 function shadowSpeak(){
