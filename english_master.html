@@ -3718,14 +3718,28 @@ function saveMySRS(d){ try{ localStorage.setItem(MY_SRS_KEY, JSON.stringify(d)) 
 function openAddSentModal(){
   const modal = document.getElementById('add-sent-modal');
   modal.style.display = 'flex';
-  // 입력창 초기화
+  // 현재 학습 중인 문장의 상황메모를 기본값으로
+  let curSit = '';
+  const typingScreen = document.getElementById('typing');
+  const shadowScreen = document.getElementById('shadowing');
+  const dictScreen   = document.getElementById('dictation');
+  if(typingScreen && typingScreen.classList.contains('active')){
+    curSit = document.getElementById('typing-sit')?.textContent || '';
+  } else if(shadowScreen && shadowScreen.classList.contains('active')){
+    curSit = document.getElementById('shadow-sit')?.textContent || '';
+  } else if(dictScreen && dictScreen.classList.contains('active')){
+    curSit = document.getElementById('dict-sit')?.textContent || '';
+  }
+  // '—' 이거나 비어있으면 빈칸으로
+  if(curSit === '—') curSit = '';
+
   document.getElementById('modal-en-input').value = '';
   document.getElementById('modal-ko-input').value = '';
-  document.getElementById('modal-sit-input').value = '';
+  document.getElementById('modal-sit-input').value = curSit;
   document.getElementById('modal-en-input').style.borderColor = 'var(--border)';
   document.getElementById('modal-ko-input').style.borderColor = 'var(--border)';
-  document.getElementById('modal-sit-input').style.borderColor = 'var(--border)';
-  setTimeout(()=> document.getElementById('modal-en-input').focus(), 100);
+  document.getElementById('modal-sit-input').style.borderColor = curSit ? 'var(--accent)' : 'var(--border)';
+  setTimeout(()=> document.getElementById('modal-sit-input').focus(), 100);
 }
 
 function closeAddSentModal(){
