@@ -713,7 +713,7 @@ ${interestGuide}
 ${excludeStr?`- 제외 (이미 소싱): ${excludeStr}`:''}
 
 [출력] JSON 배열만. 다른 텍스트 절대 금지. ${targetCount}개. 각 필드는 최대한 짧게.
-[{"name":"브랜드명","category":"카테고리","concept":"컨셉 한 줄(20자 이내)","export_potential":"높음/중간/낮음","taiwan_fit":"대만 적합 이유(30자 이내)","reason":"선정 이유(50자 이내)","platform":"올리브영/무신사/스마트스토어","is_kids":false}]`;
+[{"name":"브랜드명","category":"카테고리","concept":"컨셉 한 줄(20자 이내)","export_potential":"높음/중간/낮음","platform":"올리브영/무신사/스마트스토어","is_kids":false}]`;
 
   try{
     addLog('> Gemini API 호출 중...');
@@ -827,16 +827,8 @@ const svgIcon=`<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke
 function makeQuickLinks(b){
   const name=encodeURIComponent(b.name);
   const naverSearch=`https://search.naver.com/search.naver?query=${name}`;
-  const ss=`https://smartstore.naver.com/main/sellers/search?query=${name}`;
-  const ol=`https://www.oliveyoung.co.kr/store/search/getSearchMain.do?query=${name}`;
-  const ig=`https://www.instagram.com/explore/search/keyword/?q=${name}`;
-  const allUrls=[naverSearch,ss,ol,ig];
-  return `<div class="quick-links">
-    <a class="ql-btn naver" href="${naverSearch}" target="_blank">${svgIcon}네이버 검색</a>
-    <a class="ql-btn" href="${ss}" target="_blank">${svgIcon}스마트스토어</a>
-    <a class="ql-btn" href="${ol}" target="_blank">${svgIcon}올리브영</a>
-    <a class="ql-btn" href="${ig}" target="_blank">${svgIcon}인스타그램</a>
-    <button class="ql-btn all" onclick='${JSON.stringify(allUrls)}.forEach(u=>window.open(u,"_blank"))'>전체 열기</button>
+  return `<div style="margin-top:10px">
+    <a href="${naverSearch}" target="_blank" style="display:block;text-align:center;padding:10px;background:#E8F5E9;color:#1B5E20;border:1.5px solid #81C784;border-radius:var(--radius-sm);font-size:14px;font-weight:600;text-decoration:none;">🔍 네이버 검색</a>
   </div>`;
 }
 
@@ -898,8 +890,6 @@ function renderList(){
         ${isKids?'<span class="badge b-kids">👶 어린이</span>':''}
         ${(b.platform||b.source)?`<span class="badge b-source">📍 ${b.platform||b.source}</span>`:''}
       </div>
-      <div class="brand-body">${b.reason}</div>
-      ${b.taiwan_fit?`<div class="tw-reason">대만 적합: ${b.taiwan_fit}</div>`:''}
       ${b.concept?`<div class="brand-sub">컨셉: ${b.concept}</div>`:''}
       ${makeQuickLinks(b)}
     </div>`;
