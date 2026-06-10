@@ -674,8 +674,8 @@ ${excludeStr?`- 제외 (이미 소싱): ${excludeStr}`:''}
          body:JSON.stringify({
            contents:[{parts:[{text:prompt}]}],
            generationConfig:{
-             temperature:0.2,      // 낮을수록 사실 기반 응답
-             maxOutputTokens:4000  // 10개면 충분, 토큰 절약
+             temperature:0.2,
+             maxOutputTokens:8000
            }
          })}
       );
@@ -699,7 +699,11 @@ ${excludeStr?`- 제외 (이미 소싱): ${excludeStr}`:''}
     const candidate=data.candidates?.[0];
     if(candidate?.content?.parts){for(const p of candidate.content.parts){if(p.text)rawText+=p.text;}}
     rawText=rawText.trim();
-    addLog('> 응답 수신 ('+rawText.length+'자)');
+    const finishReason=candidate?.finishReason||'unknown';
+    addLog('> 응답 수신 ('+rawText.length+'자) · 종료 이유: '+finishReason);
+    if(finishReason==='MAX_TOKENS'){
+      addLog('> 경고: 토큰 한도로 응답 잘림 — 파싱 시도');
+    }
     if(candidate?.groundingMetadata?.webSearchQueries){
       addLog('> 웹검색 ✓ ('+candidate.groundingMetadata.webSearchQueries.length+'개 쿼리)');
     }
