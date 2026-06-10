@@ -493,33 +493,18 @@ function updateNextCats(){
 }
 
 function robustParse(raw){
+  // 백틱 관련 모든 패턴 제거 (가장 단순한 방법)
   let t=raw;
+  while(t.includes('`')) t=t.split('`').join('');
+  t=t.replace(/^[\s\S]*?(\[)/,'$1').trim(); // [ 앞 모든 텍스트 제거
 
-  // 1단계: ```json 또는 ``` 로 감싸인 경우 내부 추출
-  const codeBlockMatch=t.match(/```(?:json)?\s*([\s\S]*?)```/i);
-  if(codeBlockMatch) t=codeBlockMatch[1].trim();
-
-  // 2단계: 남은 백틱 제거
-  t=t.split('`').join('').trim();
-
-  // 3단계: [ 시작 위치 찾아서 앞 텍스트 제거
-  const si=t.indexOf('[');
-  if(si>0) t=t.slice(si).trim();
-
-  // 4단계: ] 마지막 위치 찾아서 뒤 텍스트 제거
   const ei=t.lastIndexOf(']');
-  if(ei>=0&&ei<t.length-1) t=t.slice(0,ei+1).trim();
+  if(ei>=0) t=t.slice(0,ei+1).trim();
 
-  // 5단계: JSON 파싱 시도
   try{return JSON.parse(t);}catch(e1){}
+  try{return JSON.parse(t.replace(/,(\s*[}\]])/g,'$1'));}catch(e2){}
 
-  // 6단계: trailing comma 제거 후 재시도
-  try{
-    const fixed=t.replace(/,(\s*[}\]])/g,'$1').replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g,'');
-    return JSON.parse(fixed);
-  }catch(e2){}
-
-  // 7단계: 객체 단위 추출 (최후 수단)
+  // 객체 단위 추출 (최후 수단)
   const objs=[];let depth=0,start=-1,inStr=false,esc=false;
   for(let i=0;i<t.length;i++){
     const ch=t[i];
