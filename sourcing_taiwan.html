@@ -493,17 +493,18 @@ function updateNextCats(){
 }
 
 function robustParse(raw){
-  // 백틱 관련 모든 패턴 제거 (가장 단순한 방법)
-  let t=raw;
-  while(t.includes('`')) t=t.split('`').join('');
-  t=t.replace(/^[\s\S]*?(\[)/,'$1').trim(); // [ 앞 모든 텍스트 제거
-
+  const BACKTICK=String.fromCharCode(96);
+  // 백틱 전부 제거
+  let t=raw.split(BACKTICK).join('').trim();
+  // [ 앞 텍스트 제거
+  const si=t.indexOf('[');
+  if(si>0) t=t.slice(si).trim();
+  // ] 뒤 텍스트 제거
   const ei=t.lastIndexOf(']');
-  if(ei>=0) t=t.slice(0,ei+1).trim();
-
+  if(ei>=0&&ei<t.length-1) t=t.slice(0,ei+1).trim();
+  // JSON 파싱
   try{return JSON.parse(t);}catch(e1){}
   try{return JSON.parse(t.replace(/,(\s*[}\]])/g,'$1'));}catch(e2){}
-
   // 객체 단위 추출 (최후 수단)
   const objs=[];let depth=0,start=-1,inStr=false,esc=false;
   for(let i=0;i<t.length;i++){
