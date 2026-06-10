@@ -655,8 +655,8 @@ ${interestGuide}
 - 대만 수출 적합 (고온다습 기후, K-콘텐츠 영향, 위생 관심)
 ${excludeStr?`- 제외 (이미 소싱): ${excludeStr}`:''}
 
-[출력] JSON 배열만. 다른 텍스트 절대 금지. ${targetCount}개.
-[{"name":"브랜드명(한국어)","category":"카테고리","concept":"한 줄 컨셉","export_potential":"높음/중간/낮음","taiwan_fit":"대만 적합 이유","reason":"선정 이유 1~2문장","platform":"올리브영/무신사/스마트스토어 중 확인된 것","is_kids":false}]`;
+[출력] JSON 배열만. 다른 텍스트 절대 금지. ${targetCount}개. 각 필드는 최대한 짧게.
+[{"name":"브랜드명","category":"카테고리","concept":"컨셉 한 줄(20자 이내)","export_potential":"높음/중간/낮음","taiwan_fit":"대만 적합 이유(30자 이내)","reason":"선정 이유(50자 이내)","platform":"올리브영/무신사/스마트스토어","is_kids":false}]`;
 
   try{
     addLog('> Gemini API 호출 중...');
@@ -675,7 +675,7 @@ ${excludeStr?`- 제외 (이미 소싱): ${excludeStr}`:''}
            contents:[{parts:[{text:prompt}]}],
            generationConfig:{
              temperature:0.2,
-             maxOutputTokens:8000
+             maxOutputTokens:16000
            }
          })}
       );
