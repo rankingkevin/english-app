@@ -493,16 +493,23 @@ function updateNextCats(){
 }
 
 function robustParse(raw){
+  // 코드블록 제거
   let t=raw.replace(/```json[\s\S]*?```/gi,m=>m.replace(/```json\s*/i,'').replace(/\s*```$/,''))
            .replace(/`{1,3}json\s*/gi,'').replace(/`{1,3}/g,'').trim();
-  const si=t.indexOf('['),ei=t.lastIndexOf(']');
-  if(si!==-1&&ei>si){
-    const slice=t.slice(si,ei+1);
+
+  // [ 이전에 있는 마크다운/텍스트 완전 제거 (보고서 형식 대응)
+  const si=t.indexOf('[');
+  if(si>0) t=t.slice(si);
+
+  const ei=t.lastIndexOf(']');
+  if(si!==-1&&ei>0){
+    const slice=t.slice(0,ei+1);
     try{return JSON.parse(slice);}catch(e1){
       const fixed=slice.replace(/,(\s*[}\]])/g,'$1').replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g,'');
       try{return JSON.parse(fixed);}catch(e2){}
     }
   }
+  // 객체 단위 추출 (최후 수단)
   const objs=[];let depth=0,start=-1,inStr=false,esc=false;
   for(let i=0;i<t.length;i++){
     const ch=t[i];
@@ -630,32 +637,34 @@ async function runSearch(isMore){
   const interestGuide=interestList.length>0?`\n또한 아래 관심 브랜드와 유사한 감성·컨셉의 브랜드도 포함:\n관심 브랜드: ${interestList.join(', ')}`:'';
   const kidsGuide=hasKids?`\n[어린이 카테고리 주의사항]\n- "어린이용", "키즈", "아이" 키워드로 검색\n- KC·식약처 인증 브랜드 우선\n- 부모 신뢰도·성분 안전성 핵심\n- 대만 부모들의 한국 어린이 제품 선호도 높음`:'';
 
-  const prompt=`당신은 한국 인디·중소 브랜드 전문 소싱 MD입니다. 구글 검색으로 대만 수출용 브랜드를 찾아주세요.
+  const prompt=`You are a Korean indie/SME brand sourcing MD. Search Google and return ONLY a JSON array. No markdown, no headers, no explanation text — ONLY the JSON array starting with [ and ending with ].
 
-[이번 회차 소싱 카테고리]
-${pickedCats.map((c,i)=>`${i+1}. ${c}${isKidsCat(c)?' (5~10세 어린이 타깃)':''}`).join('\n')}
+SEARCH TARGET CATEGORIES:
+${pickedCats.map((c,i)=>`${i+1}. ${c}${isKidsCat(c)?' (target: children 5~10 years old)':''}`).join('\n')}
 ${kidsGuide}
 
-[검색 방법]
-각 카테고리별로 검색:
-- "[카테고리] 인디브랜드 올리브영 2024 2025"
-- "[카테고리] 한국 중소브랜드 스마트스토어"
-- "[카테고리] 신생브랜드 인스타그램"
+SEARCH QUERIES TO USE:
+${pickedCats.map(c=>`- "${c} 인디브랜드 올리브영 2025"\n- "${c} 한국 중소브랜드 스마트스토어"`).join('\n')}
 
-[소싱 조건]
-- 각 카테고리에서 2~3개씩 균등하게 (총 ${targetCount}개)
-- 실제 존재하고 현재 판매 중인 브랜드만
-- 인디·독립 중소 브랜드 (대기업·연매출 500억+·상장사 제외)
-- 올리브영·무신사·스마트스토어 중 한 곳 이상 입점 또는 자사몰 운영
-- 대만: 고온다습 / K-콘텐츠 영향 / 위생·청결 관심
-- 감도·디자인 우수 + SNS 활발 + 최근 3년 이내 론칭 우선
+SOURCING CONDITIONS:
+- 2~3 brands per category (total ${targetCount} brands)
+- Only brands that actually exist and are currently selling
+- Indie/independent SME brands only (no conglomerates, no brands with revenue over 50B KRW)
+- Must be listed on oliveyoung, musinsa, smartstore, or own website
+- Good for Taiwan: hot/humid climate, K-content influence, hygiene-conscious consumers
+- Good design + active SNS + launched within last 3 years preferred
 ${interestGuide}
-${excludeStr?'- 반드시 제외:\n'+excludeStr:''}
+${excludeStr?'MUST EXCLUDE (already sourced):\n'+excludeStr:''}
+${hasKids?'For children categories: focus on KC/MFDS certified brands, safety-first'\n:''}
 
-[중요] 브랜드명은 한국어만. URL 넣지 말 것.
+CRITICAL OUTPUT RULES:
+1. Output ONLY the JSON array — nothing before [ and nothing after ]
+2. NO markdown formatting, NO backticks, NO headers, NO explanatory text
+3. Brand names in Korean only (NO English in parentheses)
+4. NO URLs
 
-[출력 형식] JSON 배열만, 코드블록 없이:
-[{"name":"브랜드명(한국어만)","category":"카테고리","concept":"컨셉 한 줄","design":"디자인·패키지 특징","sns":"주요 SNS 및 팔로워","export_potential":"높음 또는 중간 또는 낮음","taiwan_fit":"대만 적합 이유","reason":"선정 이유 2문장","source":"확인 플랫폼","is_kids":false}]`;
+OUTPUT (JSON array only, starting with [):
+[{"name":"브랜드명","category":"카테고리","concept":"컨셉 한 줄","design":"디자인·패키지 특징","sns":"주요 SNS 및 팔로워","export_potential":"높음 또는 중간 또는 낮음","taiwan_fit":"대만 적합 이유","reason":"선정 이유 2문장","source":"확인 플랫폼","is_kids":false}]`;
 
   try{
     const res=await fetch(
