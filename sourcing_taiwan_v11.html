@@ -620,8 +620,11 @@ async function runSearch(isMore){
   const model=getModel();
   const dedup=document.getElementById('togDedup').classList.contains('on');
   const interestList=[...interested];
+  // 중복 방지용 전체 Set (저장/렌더링용)
   const excludeSet=new Set([...results.map(r=>r.name),...rejected]);
-  const excludeStr=dedup&&excludeSet.size>0?[...excludeSet].join(', '):'';
+  // 프롬프트에는 최근 소싱 30개만 — 탈락 제외 (너무 길면 AI 혼란)
+  const recentNames=results.slice(-30).map(r=>r.name);
+  const excludeStr=dedup&&recentNames.length>0?recentNames.join(', '):'';
 
   document.getElementById('logBox').innerHTML='';
   document.getElementById('rawBox').style.display='none';
@@ -632,7 +635,7 @@ async function runSearch(isMore){
   addLog('> 이번 회차: '+pickedCats.map(c=>(isKidsCat(c)?'👶':'')+'['+c+']').join(' '));
   if(hasKids)addLog('> 어린이 특화 카테고리 포함');
   if(interestList.length>0)addLog('> 관심 기반: '+interestList.join(', '));
-  if(excludeStr)addLog('> 제외: '+excludeSet.size+'개');
+  if(excludeStr)addLog('> 최근 소싱 제외: '+recentNames.length+'개 (전체 누적: '+excludeSet.size+'개)');
 
   const interestGuide=interestList.length>0?`\n또한 아래 관심 브랜드와 유사한 감성·컨셉의 브랜드도 포함:\n관심 브랜드: ${interestList.join(', ')}`:'';
   const kidsGuide=hasKids?`\n[어린이 카테고리 주의사항]\n- "어린이용", "키즈", "아이" 키워드로 검색\n- KC·식약처 인증 브랜드 우선\n- 부모 신뢰도·성분 안전성 핵심\n- 대만 부모들의 한국 어린이 제품 선호도 높음`:'';
