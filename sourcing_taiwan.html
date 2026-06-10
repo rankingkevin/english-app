@@ -311,8 +311,9 @@ input:focus,select:focus{border-color:var(--accent)}
   <div id="t-results" class="sec">
     <div class="more-bar" id="moreBar" style="display:none">
       <div class="more-info" id="moreInfo"></div>
-      <button class="btn btn-more" onclick="runSearch(true)" style="padding:9px 16px;font-size:13px;flex-shrink:0">+ 추가 소싱 ↗</button>
+      <button class="btn btn-more" id="moreBtn" onclick="runMore()" style="padding:9px 16px;font-size:13px;flex-shrink:0">+ 추가 소싱 ↗</button>
     </div>
+    <div id="moreStatus" style="display:none;padding:10px 14px;border-radius:var(--radius-sm);font-size:13px;margin-bottom:1rem;background:var(--accent-soft);color:var(--accent);font-family:var(--font-mono);line-height:1.8;max-height:100px;overflow-y:auto"></div>
     <div class="filter-bar">
       <button class="fbtn on" onclick="setFilter(this,'검토대기')">검토 대기</button>
       <button class="fbtn" onclick="setFilter(this,'관심')">관심만</button>
@@ -603,6 +604,56 @@ function updateMoreBar(){
 
 function isKidsCat(cat){return cat&&cat.startsWith('어린이');}
 
+// 결과 탭 미니 로그
+function addMoreLog(msg){
+  const el=document.getElementById('moreStatus');
+  if(!el)return;
+  el.style.display='block';
+  el.innerHTML+=msg+'\n';
+  el.scrollTop=el.scrollHeight;
+}
+function clearMoreLog(){
+  const el=document.getElementById('moreStatus');
+  if(el){el.innerHTML='';el.style.display='none';}
+}
+
+// 추가 소싱 버튼 상태 제어
+function setMoreBtn(state, text){
+  const btn=document.getElementById('moreBtn');
+  if(!btn)return;
+  if(state==='loading'){
+    btn.disabled=true;
+    btn.textContent=text||'⏳ 소싱 중...';
+    btn.style.opacity='0.6';
+    btn.style.cursor='not-allowed';
+  }else if(state==='done'){
+    btn.disabled=false;
+    btn.textContent=text||'+ 추가 소싱 ↗';
+    btn.style.opacity='1';
+    btn.style.cursor='pointer';
+    setTimeout(()=>{btn.textContent='+ 추가 소싱 ↗';},3000);
+  }else{
+    btn.disabled=false;
+    btn.textContent='+ 추가 소싱 ↗';
+    btn.style.opacity='1';
+    btn.style.cursor='pointer';
+  }
+}
+
+async function runMore(){
+  const key=lastKey||document.getElementById('apiKey').value.trim();
+  if(!key){
+    // API 키 없으면 소싱 실행 탭으로 이동
+    goTab('search');
+    showStatus('API 키를 먼저 입력해주세요.','error');
+    return;
+  }
+  clearMoreLog();
+  setMoreBtn('loading');
+  addMoreLog('> 소싱 시작...');
+  await runSearch(true);
+}
+
 async function runSearch(isMore){
   const key=document.getElementById('apiKey').value.trim()||(isMore?lastKey:'');
   if(!key){showStatus('Gemini API 키를 입력해주세요.','error');return;}
@@ -634,6 +685,12 @@ async function runSearch(isMore){
   if(hasKids)addLog('> 어린이 특화 카테고리 포함');
   if(interestList.length>0)addLog('> 관심 기반: '+interestList.join(', '));
   if(excludeStr)addLog('> 최근 소싱 제외: '+recentNames.length+'개 (전체 누적: '+excludeSet.size+'개)');
+
+  // isMore면 결과 탭 미니 로그에도 표시
+  if(isMore){
+    addMoreLog('> '+pickedCats.map(c=>(isKidsCat(c)?'👶 ':'')+c).join(' · '));
+    addMoreLog('> Gemini API 호출 중...');
+  }
 
   const interestGuide=interestList.length>0
     ?`관심 브랜드(${interestList.slice(0,5).join(', ')})와 유사한 감성·컨셉 브랜드 우선`
@@ -701,8 +758,10 @@ ${excludeStr?`- 제외 (이미 소싱): ${excludeStr}`:''}
     rawText=rawText.trim();
     const finishReason=candidate?.finishReason||'unknown';
     addLog('> 응답 수신 ('+rawText.length+'자) · 종료 이유: '+finishReason);
+    if(isMore) addMoreLog('> 응답 수신 · 파싱 중...');
     if(finishReason==='MAX_TOKENS'){
       addLog('> 경고: 토큰 한도로 응답 잘림 — 파싱 시도');
+      if(isMore) addMoreLog('> ⚠ 응답 잘림 — 일부만 저장될 수 있어요');
     }
     if(candidate?.groundingMetadata?.webSearchQueries){
       addLog('> 웹검색 ✓ ('+candidate.groundingMetadata.webSearchQueries.length+'개 쿼리)');
@@ -740,13 +799,25 @@ ${excludeStr?`- 제외 (이미 소싱): ${excludeStr}`:''}
     }
     updateStats();updateSummary();updateNextCats();
     const kidsCount=newItems.filter(b=>b.is_kids).length;
-    showStatus(`완료! ${newItems.length}개 소싱${kidsCount>0?' (어린이 '+kidsCount+'개 포함)':''} · 누적 ${results.length}개`,'done');
+    const doneMsg=`완료! ${newItems.length}개 소싱${kidsCount>0?' (어린이 '+kidsCount+'개 포함)':''} · 누적 ${results.length}개`;
+    showStatus(doneMsg,'done');
     addLog('> 저장: '+newItems.length+'개 · 누적 '+results.length+'개');
-    setTimeout(()=>goTab('results'),700);
+    if(isMore){
+      addMoreLog('> ✓ '+newItems.length+'개 추가 · 누적 '+results.length+'개');
+      setMoreBtn('done','✓ 완료! '+newItems.length+'개 추가');
+      renderList(); // 결과 목록 즉시 갱신
+      updateMoreBar();
+    }else{
+      setTimeout(()=>goTab('results'),700);
+    }
   }catch(err){
     if(isQuota(err.message)){showStatus('한도 초과 — 잠시 후 다시 시도해주세요.','warn');showQuotaBox();}
     else{showStatus('오류: '+err.message,'error');}
     addLog('> 오류: '+err.message);
+    if(isMore){
+      addMoreLog('> ✗ 오류: '+err.message);
+      setMoreBtn('error');
+    }
   }
 }
 
