@@ -493,40 +493,42 @@ function updateNextCats(){
 }
 
 function robustParse(raw){
-  // 1단계: 코드블록 완전 제거 (```json ... ``` 전체를 내용만 남기기)
-  let t=raw
-    .replace(/```json\s*/gi,'')  // ```json 제거
-    .replace(/```\s*/g,'')       // ``` 제거
-    .replace(/`/g,'')            // 남은 백틱 제거
-    .trim();
+  let t=raw;
 
-  // 2단계: [ 이전 텍스트 제거
+  // 1단계: ```json 또는 ``` 로 감싸인 경우 내부 추출
+  const codeBlockMatch=t.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if(codeBlockMatch) t=codeBlockMatch[1].trim();
+
+  // 2단계: 남은 백틱 제거
+  t=t.split('`').join('').trim();
+
+  // 3단계: [ 시작 위치 찾아서 앞 텍스트 제거
   const si=t.indexOf('[');
-  if(si>0) t=t.slice(si);
+  if(si>0) t=t.slice(si).trim();
 
-  // 3단계: ] 이후 텍스트 제거
+  // 4단계: ] 마지막 위치 찾아서 뒤 텍스트 제거
   const ei=t.lastIndexOf(']');
-  if(ei!==-1&&ei<t.length-1) t=t.slice(0,ei+1);
+  if(ei>=0&&ei<t.length-1) t=t.slice(0,ei+1).trim();
 
-  // 4단계: JSON 파싱 시도
-  if(t.startsWith('[')){
-    try{return JSON.parse(t);}catch(e1){
-      // trailing comma 제거 후 재시도
-      const fixed=t
-        .replace(/,(\s*[}\]])/g,'$1')
-        .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g,'');
-      try{return JSON.parse(fixed);}catch(e2){}
-    }
-  }
+  // 5단계: JSON 파싱 시도
+  try{return JSON.parse(t);}catch(e1){}
 
-  // 5단계: 객체 단위 추출 (최후 수단)
+  // 6단계: trailing comma 제거 후 재시도
+  try{
+    const fixed=t.replace(/,(\s*[}\]])/g,'$1').replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g,'');
+    return JSON.parse(fixed);
+  }catch(e2){}
+
+  // 7단계: 객체 단위 추출 (최후 수단)
   const objs=[];let depth=0,start=-1,inStr=false,esc=false;
   for(let i=0;i<t.length;i++){
     const ch=t[i];
-    if(esc){esc=false;continue;}if(ch==='\\'){esc=true;continue;}
-    if(ch==='"'){inStr=!inStr;continue;}if(inStr)continue;
+    if(esc){esc=false;continue;}
+    if(ch==='\\'){esc=true;continue;}
+    if(ch==='"'){inStr=!inStr;continue;}
+    if(inStr)continue;
     if(ch==='{'){if(depth===0)start=i;depth++;}
-    else if(ch==='}'){depth--;if(depth===0&&start!==-1){try{objs.push(JSON.parse(t.slice(start,i+1)));}catch(err){}start=-1;}}
+    else if(ch==='}'){depth--;if(depth===0&&start!==-1){try{objs.push(JSON.parse(t.slice(start,i+1)));}catch(e){}start=-1;}}
   }
   if(objs.length>0)return objs;
   throw new Error('파싱 불가');
@@ -718,9 +720,11 @@ ${excludeStr?`- 제외 (이미 소싱): ${excludeStr}`:''}
     let parsed;
     try{parsed=robustParse(rawText);addLog('> 파싱 성공: '+parsed.length+'개');}
     catch(pe){
+      // 파싱 실패 시 원본 첫 200자 로그에 표시
+      addLog('> 파싱 실패. 원본 앞 200자: '+rawText.slice(0,200));
       const rb=document.getElementById('rawBox');rb.className='raw-box';rb.style.display='block';
       rb.textContent='[AI 원본 응답]\n'+rawText;
-      throw new Error('파싱 실패 — 위 원본을 Claude에게 보내주세요.');
+      throw new Error('파싱 실패');
     }
 
     const today=new Date().toLocaleDateString('ko-KR');
