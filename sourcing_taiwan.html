@@ -242,16 +242,16 @@ input:focus,select:focus{border-color:var(--accent)}
     <div class="divider" style="margin:1rem 0"></div>
     <div class="slabel">카테고리 선택 <span style="font-size:11px;font-weight:400;color:var(--text3)">(매 회차 3~4개 자동 선택)</span></div>
 
-    <!-- 어린이 특화 — 6개 모두 on -->
+    <!-- 어린이 특화 (5~12세, 유아 제외) -->
     <div class="kids-section-box">
-      <div class="kids-section-title">👶 어린이 특화 카테고리 (5~10세 타깃)</div>
+      <div class="kids-section-title">👶 어린이 특화 카테고리 (5~12세 타깃)</div>
       <div class="cat-grid">
         <span class="cat-tag kids-tag on" data-cat="어린이 위생·구강케어" data-kids="true" onclick="this.classList.toggle('on');updateNextCats()">어린이 위생·구강케어</span>
         <span class="cat-tag kids-tag on" data-cat="어린이 피부·보습케어" data-kids="true" onclick="this.classList.toggle('on');updateNextCats()">어린이 피부·보습케어</span>
         <span class="cat-tag kids-tag on" data-cat="어린이 코·비염케어" data-kids="true" onclick="this.classList.toggle('on');updateNextCats()">어린이 코·비염케어</span>
         <span class="cat-tag kids-tag on" data-cat="어린이 모기·벌레 퇴치" data-kids="true" onclick="this.classList.toggle('on');updateNextCats()">어린이 모기·벌레 퇴치</span>
         <span class="cat-tag kids-tag on" data-cat="어린이 식품·간식" data-kids="true" onclick="this.classList.toggle('on');updateNextCats()">어린이 식품·간식</span>
-        <span class="cat-tag kids-tag on" data-cat="어린이 생활용품" data-kids="true" onclick="this.classList.toggle('on');updateNextCats()">어린이 생활용품</span>
+        <span class="cat-tag kids-tag on" data-cat="어린이 자외선차단·선케어" data-kids="true" onclick="this.classList.toggle('on');updateNextCats()">어린이 자외선차단·선케어</span>
       </div>
     </div>
 
@@ -263,6 +263,9 @@ input:focus,select:focus{border-color:var(--accent)}
         <span class="cat-tag on" data-cat="코·비강·호흡케어" onclick="this.classList.toggle('on');updateNextCats()">코·비강·호흡케어</span>
         <span class="cat-tag on" data-cat="풋·발·바디케어" onclick="this.classList.toggle('on');updateNextCats()">풋·발·바디케어</span>
         <span class="cat-tag on" data-cat="모기·벌레 퇴치" onclick="this.classList.toggle('on');updateNextCats()">모기·벌레 퇴치</span>
+        <span class="cat-tag on" data-cat="마스크·미세먼지 케어" onclick="this.classList.toggle('on');updateNextCats()">마스크·미세먼지 케어</span>
+        <span class="cat-tag on" data-cat="여성 위생용품" onclick="this.classList.toggle('on');updateNextCats()">여성 위생용품</span>
+        <span class="cat-tag on" data-cat="반창고·상처케어" onclick="this.classList.toggle('on');updateNextCats()">반창고·상처케어</span>
       </div>
     </div>
     <div class="cat-section">
@@ -275,10 +278,20 @@ input:focus,select:focus{border-color:var(--accent)}
       </div>
     </div>
     <div class="cat-section">
+      <div class="cat-section-label">스킨케어·뷰티</div>
+      <div class="cat-grid">
+        <span class="cat-tag on" data-cat="자외선차단·선케어" onclick="this.classList.toggle('on');updateNextCats()">자외선차단·선케어</span>
+        <span class="cat-tag on" data-cat="뷰티·스킨케어" onclick="this.classList.toggle('on');updateNextCats()">뷰티·스킨케어</span>
+        <span class="cat-tag on" data-cat="남성 그루밍" onclick="this.classList.toggle('on');updateNextCats()">남성 그루밍</span>
+        <span class="cat-tag on" data-cat="립·색조메이크업" onclick="this.classList.toggle('on');updateNextCats()">립·색조메이크업</span>
+      </div>
+    </div>
+    <div class="cat-section">
       <div class="cat-section-label">식품·음료</div>
       <div class="cat-grid">
         <span class="cat-tag on" data-cat="식품·음료·간식" onclick="this.classList.toggle('on');updateNextCats()">식품·음료·간식</span>
         <span class="cat-tag on" data-cat="건강기능식품" onclick="this.classList.toggle('on');updateNextCats()">건강기능식품</span>
+        <span class="cat-tag on" data-cat="다이어트·슬리밍" onclick="this.classList.toggle('on');updateNextCats()">다이어트·슬리밍</span>
       </div>
     </div>
     <div class="cat-section">
@@ -288,13 +301,8 @@ input:focus,select:focus{border-color:var(--accent)}
         <span class="cat-tag on" data-cat="세탁·의류케어" onclick="this.classList.toggle('on');updateNextCats()">세탁·의류케어 (이염방지·세탁세제)</span>
         <span class="cat-tag on" data-cat="신발클리너·슈케어" onclick="this.classList.toggle('on');updateNextCats()">신발클리너·슈케어</span>
         <span class="cat-tag on" data-cat="친환경·비건" onclick="this.classList.toggle('on');updateNextCats()">친환경·비건</span>
-      </div>
-    </div>
-    <div class="cat-section">
-      <div class="cat-section-label">기타</div>
-      <div class="cat-grid">
-        <span class="cat-tag" data-cat="뷰티·스킨케어" onclick="this.classList.toggle('on');updateNextCats()">뷰티·스킨케어</span>
-        <span class="cat-tag" data-cat="완구·취미용품" onclick="this.classList.toggle('on');updateNextCats()">완구·취미용품</span>
+        <span class="cat-tag on" data-cat="아로마·디퓨저·홈프래그런스" onclick="this.classList.toggle('on');updateNextCats()">아로마·디퓨저·홈프래그런스</span>
+        <span class="cat-tag on" data-cat="완구·취미용품" onclick="this.classList.toggle('on');updateNextCats()">완구·취미용품</span>
       </div>
     </div>
 
@@ -467,15 +475,23 @@ function getSelectedCats(){
   }));
 }
 
-function pickCatsForRound(all,count=4){
-  if(all.length===0)return[];
-  if(all.length<=count)return[...all].sort(()=>Math.random()-0.5);
-  const scored=all.map(item=>({...item,score:(catHistory[item.cat]||0)+Math.random()*0.6}));
+function pickCatsForRound(all, count=4){
+  if(all.length===0) return [];
+  if(all.length<=count) return [...all].sort(()=>Math.random()-0.5);
+
+  // 소싱 횟수 적은 것 우선 + 랜덤 노이즈
+  const scored=all.map(item=>({
+    ...item,
+    score:(catHistory[item.cat]||0)+Math.random()*0.8
+  }));
   scored.sort((a,b)=>a.score-b.score);
+
   const kidsItems=scored.filter(x=>x.isKids);
   const normalItems=scored.filter(x=>!x.isKids);
   let picked=[];
-  if(kidsItems.length>0&&Math.random()>0.3){
+
+  // 70% 확률로 어린이 카테고리 1개 포함
+  if(kidsItems.length>0 && Math.random()>0.3){
     picked.push(kidsItems[0]);
     picked.push(...normalItems.slice(0,count-1));
   }else{
