@@ -573,7 +573,7 @@ button{font-family:var(--sans)}
   <div id="review-list" style="padding:12px 16px;display:flex;flex-direction:column;gap:10px;padding-bottom:40px"></div>
 </div>
 
-<div id="typing" class="screen">
+<div id="typing" class="screen" tabindex="-1" onpointerup="(function(e){const inp=document.getElementById('typing-input');const res=document.getElementById('typing-result');if(inp&&!inp.disabled&&res&&res.style.display==='none'&&document.activeElement!==inp){inp.focus();}})(event)">
   <div class="top-nav">
     <button class="nav-back" onclick="exitTypingConfirm()">←</button>
     <span class="nav-title" id="typing-title">타이핑 연습</span>
@@ -3994,7 +3994,10 @@ function renderTypingCard(){
   inp.disabled = false;
   var cb=document.getElementById('copy-input-btn');if(cb){cb.style.opacity='.3';cb.style.pointerEvents='none';cb.textContent='📋';cb.style.color='';cb.style.borderColor='';}
   inp.style.borderColor = 'var(--border)';
-  inp.focus();
+  // 딜레이 여러 번 시도 (렌더링 완료 후 포커스)
+  setTimeout(()=>inp.focus(), 50);
+  setTimeout(()=>{ if(document.activeElement!==inp) inp.focus(); }, 200);
+  setTimeout(()=>{ if(document.activeElement!==inp) inp.focus(); }, 500);
 
   // 결과창 숨기기
   document.getElementById('typing-result').style.display = 'none';
@@ -4139,6 +4142,8 @@ function typingNext(){
   }
   renderTypingCard();
   updateHome();
+  // 다음 카드 전환 후 포커스 재시도
+  setTimeout(()=>{ const i=document.getElementById('typing-input'); if(i&&!i.disabled) i.focus(); }, 300);
 }
 
 function showTypingDone(){
@@ -5309,7 +5314,13 @@ document.addEventListener('keydown', function(e){
     const afterSubmit = resultVisible && inp && inp.disabled;
 
     if(e.key === 'Enter' && !e.shiftKey){
-      if(afterSubmit){ e.preventDefault(); typingNext(); }
+      e.preventDefault();
+      if(afterSubmit){
+        typingNext();
+      } else if(inp && !inp.disabled && document.activeElement !== inp){
+        // 입력창에 포커스 없을 때 엔터 → 포커스 이동
+        inp.focus();
+      }
     } else if(e.key === ' '){
       if(afterSubmit){
         e.preventDefault();
