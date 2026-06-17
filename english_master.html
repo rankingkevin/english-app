@@ -4901,11 +4901,11 @@ function show(id){
   if(id==='dashboard') renderDashboard();
 }
 
-function showToast(msg){
+function showToast(msg, duration){
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
+  setTimeout(() => t.classList.remove('show'), duration || 2500);
 }
 
 
@@ -5038,7 +5038,7 @@ function backupData(){
 
     // 마지막 백업 시간 기록
     localStorage.setItem('eng800_last_backup', new Date().toISOString());
-    showToast('✅ 백업 저장 완료! 파일앱에서 확인하세요');
+    showToast('📥 "다음에서 열기" → "파일에 저장" 을 선택하세요!', 4000);
   } catch(e){
     showToast('❌ 백업 실패: ' + e.message);
   }
