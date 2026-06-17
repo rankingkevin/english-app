@@ -4891,10 +4891,16 @@ function backupData(){
     const dateStr = new Date().toISOString().slice(0,10);
     a.href = url;
     a.download = 'english_master_backup_' + dateStr + '.json';
+    a.style.display = 'none';
+    // setTimeout으로 DOM 안정화 후 클릭 (완료 화면 등 전환 직후에도 작동)
     document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    setTimeout(function(){
+      a.click();
+      setTimeout(function(){
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 500);
+    }, 100);
 
     // 마지막 백업 시간 기록
     localStorage.setItem('eng800_last_backup', new Date().toISOString());
