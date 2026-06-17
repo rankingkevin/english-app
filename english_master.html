@@ -4910,12 +4910,7 @@ function restoreData(event){
         showToast('❌ 올바른 백업 파일이 아니에요');
         return;
       }
-      if(!confirm('백업 데이터를 복구할까요?\n현재 데이터는 덮어써져요.')){
-        event.target.value = '';
-        return;
-      }
-
-      // 데이터 복구
+      // 데이터 복구 (confirm 제거 — iOS 사파리에서 막힘)
       if(data.srs_lv1) localStorage.setItem('eng800v2_srs_lv1', data.srs_lv1);
       if(data.srs_lv2) localStorage.setItem('eng800v2_srs_lv2', data.srs_lv2);
       if(data.srs_lv3) localStorage.setItem('eng800v2_srs_lv3', data.srs_lv3);
