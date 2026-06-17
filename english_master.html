@@ -4058,7 +4058,11 @@ function startTyping(chId){
         seen.add(s.no);
         return true;
       }).sort(()=>Math.random()-.5);
-      try { localStorage.setItem(TODAY_POOL_KEY, JSON.stringify({date:todayStr, cards:pool})); } catch(e){}
+      try {
+      const poolData = JSON.stringify({date:todayStr, cards:pool});
+      localStorage.setItem(TODAY_POOL_KEY, poolData);
+      localStorage.setItem('eng800_today_pool_lv' + CURRENT_LEVEL, poolData);
+    } catch(e){}
     }
     try { sessionStorage.setItem('eng800_today_cards', JSON.stringify(pool)); } catch(e){}
     // 세션 진행 상황 초기화
@@ -4257,13 +4261,12 @@ function typingNext(){
   const inp = document.getElementById('typing-input');
   if(inp) inp.disabled = false;
   TSES.idx++;
-  // 이어하기용 진행 상황 저장
+  // 이어하기용 진행 상황 저장 (현재 레벨별로 저장)
   if(!TSES.chId){
     try {
-      localStorage.setItem('eng800_session_progress', JSON.stringify({
-        idx: TSES.idx,
-        date: new Date().toISOString().slice(0,10)
-      }));
+      const prog = JSON.stringify({idx: TSES.idx, date: new Date().toISOString().slice(0,10)});
+      localStorage.setItem('eng800_session_progress', prog);
+      localStorage.setItem('eng800_session_progress_lv' + CURRENT_LEVEL, prog);
     } catch(e){}
   }
   renderTypingCard();
@@ -5218,74 +5221,56 @@ document.getElementById('sent-edit-modal')?.addEventListener('click', function(e
 
 
 // 레벨 버튼 상태 표시 (진행중/완료)
+// 기준: eng800_today_pool_lv{N} (레벨별 pool) + eng800_session_progress_lv{N}
 function updateLevelBtnStatus(){
   const todayStr = new Date().toISOString().slice(0,10);
+
   [1,2,3].forEach(function(lv){
     const btn = document.getElementById('lv-btn-' + lv);
     const statusEl = document.getElementById('lv-status-' + lv);
     if(!btn || !statusEl) return;
 
-    // 현재 선택된 레벨이면 active 클래스만 (다른 상태 클래스 제거)
-    if(lv === CURRENT_LEVEL){
-      btn.classList.remove('in-progress', 'completed');
-      statusEl.textContent = '';
-      statusEl.style.color = '';
-      return;
-    }
-
-    // 해당 레벨의 오늘 학습 풀 확인
-    const poolKey = 'eng800_today_pool_lv' + lv;
-    const mainPool = lv === CURRENT_LEVEL
-      ? JSON.parse(localStorage.getItem('eng800_today_pool') || 'null')
-      : JSON.parse(localStorage.getItem(poolKey) || 'null');
-
-    // 오늘 학습 진행 상황
-    const progress = JSON.parse(localStorage.getItem('eng800_session_progress_lv' + lv) || 'null');
-    const mainProgress = lv === CURRENT_LEVEL
-      ? JSON.parse(localStorage.getItem('eng800_session_progress') || 'null')
-      : progress;
-
-    // 풀 히스토리에서 오늘 학습 여부 확인
-    const hasPool = localStorage.getItem('eng800_pool_' + todayStr);
-
+    // 상태 초기화
     btn.classList.remove('in-progress', 'completed');
     statusEl.textContent = '';
     statusEl.style.color = '';
 
-    // 해당 레벨 SRS 데이터
-    const savedSRS = JSON.parse(localStorage.getItem('eng800v2_srs_lv' + lv) || '{}');
-    const learnedToday = Object.values(savedSRS).filter(function(c){
-      return c.seen && c.due && (c.due - Date.now()) < 86400000 * 90;
-    }).length;
+    // 레벨별 오늘 학습 풀 확인
+    // 현재 레벨: eng800_today_pool 사용
+    // 다른 레벨: eng800_today_pool_lv{N} 사용
+    const poolRaw = lv === CURRENT_LEVEL
+      ? localStorage.getItem('eng800_today_pool')
+      : localStorage.getItem('eng800_today_pool_lv' + lv);
+    const pool = JSON.parse(poolRaw || 'null');
 
-    if(learnedToday > 0){
-      btn.classList.add('in-progress');
-      statusEl.textContent = '📚 학습 중';
-      statusEl.style.color = 'var(--a3)';
+    // 오늘 날짜 풀이 없으면 표시 없음
+    if(!pool || pool.date !== todayStr) return;
+
+    // 진행 상황
+    const progRaw = lv === CURRENT_LEVEL
+      ? localStorage.getItem('eng800_session_progress')
+      : localStorage.getItem('eng800_session_progress_lv' + lv);
+    const progress = JSON.parse(progRaw || 'null');
+    const total = pool.cards ? pool.cards.length : 30;
+    const done = (progress && progress.date === todayStr) ? (progress.idx || 0) : 0;
+
+    if(done >= total){
+      // 완료
+      btn.classList.add(lv === CURRENT_LEVEL ? '' : 'completed');
+      if(lv === CURRENT_LEVEL){
+        statusEl.textContent = '✅ 완료';
+        statusEl.style.color = '#fff';
+      } else {
+        btn.classList.add('completed');
+        statusEl.textContent = '✅ 완료';
+      }
+    } else if(done > 0){
+      // 진행중
+      if(lv !== CURRENT_LEVEL) btn.classList.add('in-progress');
+      statusEl.textContent = done + '/' + total + ' 진행중';
+      statusEl.style.color = lv === CURRENT_LEVEL ? '#fff' : 'var(--a3)';
     }
   });
-
-  // 현재 레벨 오늘 학습 완료 여부
-  const curBtn = document.getElementById('lv-btn-' + CURRENT_LEVEL);
-  const curStatus = document.getElementById('lv-status-' + CURRENT_LEVEL);
-  if(!curBtn || !curStatus) return;
-
-  const curPool = JSON.parse(localStorage.getItem('eng800_today_pool') || 'null');
-  const curProgress = JSON.parse(localStorage.getItem('eng800_session_progress') || 'null');
-
-  if(curPool && curPool.date === todayStr && curProgress){
-    const total = curPool.cards ? curPool.cards.length : 30;
-    const done = curProgress.idx || 0;
-    if(done >= total){
-      curStatus.textContent = '✅ 완료';
-      curStatus.style.color = 'var(--a4)';
-    } else if(done > 0){
-      curStatus.textContent = done + '/' + total + ' 진행중';
-      curStatus.style.color = 'var(--a3)';
-    } else {
-      curStatus.textContent = '';
-    }
-  }
 }
 
 // ── INIT ──
