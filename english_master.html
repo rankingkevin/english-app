@@ -304,7 +304,7 @@ button{font-family:var(--sans)}
     <button class="btn-secondary" id="hard-btn" onclick="startHardMode()" style="display:none;border-color:rgba(255,107,107,.4);color:var(--a2)">😓 취약 문장 집중 복습</button>
     <button class="btn-secondary" onclick="show('my-sentences')" style="border-color:rgba(255,217,61,.4);color:var(--a3)">⭐ 내 문장 관리</button>
     <div style="display:flex;gap:8px">
-      <button class="btn-secondary" onclick="backupData()" style="flex:1;border-color:rgba(78,203,113,.4);color:var(--a4)">📥 데이터 백업</button>
+      <button class="btn-secondary" onclick="backupData()"  style="flex:1;border-color:rgba(78,203,113,.4);color:var(--a4)">📥 데이터 백업</button>
       <button class="btn-secondary" onclick="document.getElementById('restore-input').click()" style="flex:1;border-color:rgba(255,159,67,.4);color:var(--a2)">📤 백업 복구</button>
     </div>
     <input type="file" id="restore-input" accept=".json" style="display:none" onchange="restoreData(event)">
@@ -3710,9 +3710,22 @@ function _editKo(){
 
 function applyKoEdits(){
   const edits = loadKoEdits();
-  Object.keys(edits).forEach(no => {
-    const s = S.find(item => item.no === parseInt(no));
-    if(s) s.ko = edits[no];
+  const lv = CURRENT_LEVEL || 1;
+  Object.keys(edits).forEach(key => {
+    // 레벨별 키 (lv1_1 형태) 처리
+    const lvMatch = key.match(/^lv(\d+)_(\d+)$/);
+    if(lvMatch){
+      const keyLv = parseInt(lvMatch[1]);
+      const no = parseInt(lvMatch[2]);
+      if(keyLv === lv){
+        const s = (window.S||S).find(item => item.no === no);
+        if(s) s.ko = edits[key];
+      }
+    } else {
+      // 기존 키 (숫자만) - 하위 호환
+      const s = (window.S||S).find(item => item.no === parseInt(key));
+      if(s) s.ko = edits[key];
+    }
   });
 }
 
@@ -3951,9 +3964,20 @@ function startMyTyping(){
 
 function applyEnEdits(){
   const edits = loadEnEdits();
-  Object.keys(edits).forEach(no => {
-    const s = (window.S||S).find(item => item.no === parseInt(no));
-    if(s) s.en = edits[no];
+  const lv = CURRENT_LEVEL || 1;
+  Object.keys(edits).forEach(key => {
+    const lvMatch = key.match(/^lv(\d+)_(\d+)$/);
+    if(lvMatch){
+      const keyLv = parseInt(lvMatch[1]);
+      const no = parseInt(lvMatch[2]);
+      if(keyLv === lv){
+        const s = (window.S||S).find(item => item.no === no);
+        if(s) s.en = edits[key];
+      }
+    } else {
+      const s = (window.S||S).find(item => item.no === parseInt(key));
+      if(s) s.en = edits[key];
+    }
   });
 }
 
@@ -5029,6 +5053,7 @@ function openChSentences(chId){
   const sents = (window.S||S).filter(s=>s.ch===chId);
   const koEdits = loadKoEdits ? loadKoEdits() : {};
   const enEdits = loadEnEdits ? loadEnEdits() : {};
+  const lv = CURRENT_LEVEL || 1;
   const srs = loadSRS();
 
   document.getElementById('chs-title').textContent = ch ? ch.name : 'Ch.'+chId;
@@ -5038,8 +5063,11 @@ function openChSentences(chId){
   el.innerHTML = '';
 
   sents.forEach(s => {
-    const ko = koEdits[s.no] || s.ko;
-    const en = enEdits[s.no] || s.en;
+    // 레벨별 키 우선, 없으면 기존 키, 없으면 원본
+    const koKey = 'lv'+lv+'_'+s.no;
+    const enKey = 'lv'+lv+'_'+s.no;
+    const ko = koEdits[koKey] || koEdits[s.no] || s.ko;
+    const en = enEdits[enKey] || enEdits[s.no] || s.en;
     const card = getCard(srs, s.no);
     const seen = card.seen;
     const mastered = isMastered(card);
@@ -5098,14 +5126,18 @@ function submitSentEdit(){
   const newKo = document.getElementById('sent-edit-ko').value.trim();
   if(!newEn || !newKo){ showToast('영어와 한국어를 모두 입력해주세요'); return; }
 
+  // 레벨별 고유 키 사용 (lv1_1, lv2_1 등으로 충돌 방지)
+  const lv = CURRENT_LEVEL || 1;
+  const editKey = 'lv' + lv + '_' + no;
+
   // 영어 수정 저장
   const enEdits = loadEnEdits ? loadEnEdits() : {};
-  enEdits[no] = newEn;
+  enEdits[editKey] = newEn;
   saveEnEdits(enEdits);
 
   // 한국어 수정 저장
   const koEdits = loadKoEdits ? loadKoEdits() : {};
-  koEdits[no] = newKo;
+  koEdits[editKey] = newKo;
   saveKoEdits(koEdits);
 
   // S 배열도 즉시 반영
