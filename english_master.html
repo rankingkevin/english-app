@@ -96,11 +96,17 @@ button{font-family:var(--sans)}
   background:var(--card);cursor:pointer;text-align:center;transition:.2s;
   font-family:var(--sans)}
 .level-btn:hover{border-color:var(--accent)}
-.level-btn.active{border-color:var(--accent);background:rgba(124,111,255,.12)}
-.level-btn.in-progress{border-color:var(--a3);background:rgba(255,217,61,.1)}
+.level-btn.active{border-color:var(--accent);background:#7c6fff}
+.level-btn.active .lv-num{color:#fff}
+.level-btn.active .lv-name{color:rgba(255,255,255,.85)}
+.level-btn.active .lv-desc{color:rgba(255,255,255,.6)}
+.level-btn.in-progress{border-color:var(--a3);background:rgba(255,217,61,.15)}
 .level-btn.in-progress .lv-num{color:var(--a3)}
-.level-btn.completed{border-color:var(--a4);background:rgba(78,203,113,.12)}
-.level-btn.completed .lv-num{color:var(--a4)}
+.level-btn.completed{border-color:var(--a4);background:#4ecb71}
+.level-btn.completed .lv-num{color:#0a2e14}
+.level-btn.completed .lv-name{color:#0a2e14}
+.level-btn.completed .lv-desc{color:rgba(10,46,20,.7)}
+.level-btn.completed .lv-status{color:#0a2e14}
 .level-btn .lv-status{font-size:9px;margin-top:4px;font-weight:700}
 .level-btn .lv-num{font-family:var(--display);font-size:22px;font-weight:800;color:var(--accent)}
 .level-btn .lv-name{font-size:10px;color:var(--muted);margin-top:3px}
