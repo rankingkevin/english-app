@@ -759,6 +759,14 @@ button{font-family:var(--sans)}
                onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
               ✚ 새 문장
             </button>
+            <button onclick="copyBoth(this)" style="
+              background:none;border:1px solid var(--border);
+              color:var(--muted);padding:8px 18px;border-radius:10px;
+              cursor:pointer;font-size:13px;transition:.2s;margin-left:auto
+            " onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
+               onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+              📋 전체복사
+            </button>
           </div>
 
         </div>
@@ -4155,6 +4163,26 @@ function copyTypingInput(btn){
   } catch(e){
     showToast('복사 실패 — 브라우저가 지원하지 않아요.');
   }
+}
+
+
+function copyBoth(btn){
+  const myText = (document.getElementById('typing-input')||{}).value?.trim() || '';
+  const ansText = (document.getElementById('typing-answer')?.textContent || '').trim();
+  if(!myText && !ansText){ showToast('복사할 내용이 없어요'); return; }
+  const combined = [myText, ansText].filter(Boolean).join('\n');
+  navigator.clipboard.writeText(combined).then(function(){
+    btn.textContent = '✅ 복사됨';
+    btn.style.color = 'var(--a4)';
+    btn.style.borderColor = 'var(--a4)';
+    setTimeout(function(){
+      btn.textContent = '📋 전체복사';
+      btn.style.color = '';
+      btn.style.borderColor = '';
+    }, 1500);
+  }).catch(function(){
+    showToast('복사 실패');
+  });
 }
 
 function _copyAnswer(btn){
