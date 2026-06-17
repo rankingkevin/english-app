@@ -4849,7 +4849,7 @@ function show(id){
   if(id==='home') updateHome();
   if(id==='chapters') renderChapters();
   if(id==='my-sentences') renderMySentList();
-  if(id==='ch-sentences'){}
+  if(id==='ch-sentences'){ const l=document.getElementById('chs-list'); if(l) l.scrollTop=0; }
   if(id==='dashboard') renderDashboard();
 }
 
@@ -5061,6 +5061,7 @@ function openChSentences(chId){
 
   const el = document.getElementById('chs-list');
   el.innerHTML = '';
+  el.scrollTop = 0;
 
   sents.forEach(s => {
     // 레벨별 키 우선, 없으면 기존 키, 없으면 원본
