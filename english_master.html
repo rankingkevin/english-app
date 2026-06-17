@@ -3941,7 +3941,17 @@ function startTyping(chId){
       const myDue = myCards.filter(s => isMySentDue(s.no));
       const myNew = myCards.filter(s => !getMySentCard(s.no).seen);
       const myPool = [...myDue, ...myNew].sort(()=>Math.random()-.5).slice(0, 5);
-      pool = [...myPool, ...baseSorted].sort(()=>Math.random()-.5);
+      // 중복 제거: no 기준으로 유니크하게
+      const myNos = new Set(myPool.map(s => s.no));
+      const baseSortedUniq = baseSorted.filter(s => !myNos.has(s.no));
+      const combined = [...myPool, ...baseSortedUniq];
+      // 최종 중복 제거
+      const seen = new Set();
+      pool = combined.filter(s => {
+        if(seen.has(s.no)) return false;
+        seen.add(s.no);
+        return true;
+      }).sort(()=>Math.random()-.5);
       try { localStorage.setItem(TODAY_POOL_KEY, JSON.stringify({date:todayStr, cards:pool})); } catch(e){}
     }
     try { sessionStorage.setItem('eng800_today_cards', JSON.stringify(pool)); } catch(e){}
@@ -4064,12 +4074,11 @@ function _copyAnswer(btn){
   const text = document.getElementById('typing-answer').textContent;
   if(!text) return;
   navigator.clipboard.writeText(text).then(function(){
-    const orig = btn.textContent;
     btn.textContent = '✅ 복사됨';
     btn.style.borderColor = 'var(--a4)';
     btn.style.color = 'var(--a4)';
     setTimeout(function(){
-      btn.textContent = orig;
+      btn.textContent = '📋 복사';  // 고정값으로 복원
       btn.style.borderColor = 'var(--border)';
       btn.style.color = 'var(--muted)';
     }, 1500);
