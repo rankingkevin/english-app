@@ -479,6 +479,66 @@ button{font-family:var(--sans)}
   <div class="ch-list" id="ch-list"></div>
 </div>
 
+
+<!-- ══ CHAPTER SENTENCES ══ -->
+<div id="ch-sentences" class="screen">
+  <div class="top-nav">
+    <button class="nav-back" onclick="show('chapters')">←</button>
+    <span class="nav-title" id="chs-title">챕터 문장</span>
+    <span class="nav-counter" id="chs-counter">0개</span>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:8px" id="chs-list"></div>
+</div>
+
+<!-- ══ 문장 수정 모달 ══ -->
+<div id="sent-edit-modal" style="
+  display:none;position:fixed;inset:0;z-index:9999;
+  background:rgba(0,0,0,.75);backdrop-filter:blur(6px);
+  align-items:center;justify-content:center;padding:20px
+">
+  <div style="
+    background:var(--card);border:1px solid var(--border);
+    border-radius:20px;padding:24px;width:100%;max-width:480px;
+    display:flex;flex-direction:column;gap:14px
+  ">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div style="font-family:var(--display);font-size:17px;font-weight:700">✏️ 문장 수정</div>
+      <button onclick="closeSentEditModal()" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer">✕</button>
+    </div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--muted)" id="sent-edit-no"></div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <div style="font-size:12px;color:var(--muted)">🇺🇸 영어 문장</div>
+      <textarea id="sent-edit-en" style="
+        width:100%;padding:12px 14px;background:var(--surf);
+        border:1.5px solid var(--border);border-radius:10px;
+        color:var(--text);font-size:15px;outline:none;
+        resize:none;line-height:1.6;min-height:80px;transition:.2s
+      " oninput="this.style.borderColor='var(--accent)'"></textarea>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <div style="font-size:12px;color:var(--muted)">🇰🇷 한국어 뜻</div>
+      <textarea id="sent-edit-ko" style="
+        width:100%;padding:12px 14px;background:var(--surf);
+        border:1.5px solid var(--border);border-radius:10px;
+        color:var(--text);font-size:15px;outline:none;
+        resize:none;line-height:1.6;min-height:60px;transition:.2s
+      " oninput="this.style.borderColor='var(--a4)'"></textarea>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button onclick="closeSentEditModal()" style="
+        flex:1;padding:13px;background:transparent;
+        border:1px solid var(--border);border-radius:12px;
+        color:var(--muted);font-size:14px;cursor:pointer
+      ">취소</button>
+      <button onclick="submitSentEdit()" style="
+        flex:2;padding:13px;background:var(--accent);
+        border:none;border-radius:12px;
+        color:#fff;font-size:15px;font-weight:700;cursor:pointer
+      ">저장</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══ STUDY ══ -->
 <div id="study" class="screen">
   <div class="top-nav">
@@ -4407,6 +4467,7 @@ function renderChapters(){
         <div class="ch-name">${ch.name}</div>
         <div class="ch-meta">${ch.phase} · ${total}문장 · 복습대기 <b style="color:${ch.color}">${due}개</b></div>
         <div style="display:flex;gap:8px;margin-top:10px">
+          <button onclick="event.stopPropagation();openChSentences(${ch.id})" style="padding:7px 14px;background:var(--surf);border:1px solid var(--border);color:var(--text);border-radius:8px;cursor:pointer;font-size:12px;transition:.2s" onmouseover="this.style.borderColor='var(--a3)'" onmouseout="this.style.borderColor='var(--border)'">📋 문장 목록</button>
           <button onclick="event.stopPropagation();startStudy(${ch.id})" style="padding:7px 14px;background:var(--surf);border:1px solid var(--border);color:var(--text);border-radius:8px;cursor:pointer;font-size:12px;transition:.2s" onmouseover="this.style.borderColor='${ch.color}'" onmouseout="this.style.borderColor='var(--border)'">🎴 플래시카드</button>
           <button onclick="event.stopPropagation();startTyping(${ch.id})" style="padding:7px 14px;background:var(--surf);border:1px solid var(--border);color:var(--text);border-radius:8px;cursor:pointer;font-size:12px;transition:.2s" onmouseover="this.style.borderColor='var(--a4)'" onmouseout="this.style.borderColor='var(--border)'">✍️ 타이핑</button>
         </div>
@@ -4764,6 +4825,7 @@ function show(id){
   if(id==='home') updateHome();
   if(id==='chapters') renderChapters();
   if(id==='my-sentences') renderMySentList();
+  if(id==='ch-sentences'){}
   if(id==='dashboard') renderDashboard();
 }
 
@@ -4955,6 +5017,126 @@ function restoreData(event){
 }
 
 
+
+
+// ════════════════════════════════════
+// 챕터 문장 목록 + 수정
+// ════════════════════════════════════
+let _editingNo = null;
+
+function openChSentences(chId){
+  const ch = (window.CHAPTERS_ACTIVE||CHAPTERS).find(c=>c.id===chId);
+  const sents = (window.S||S).filter(s=>s.ch===chId);
+  const koEdits = loadKoEdits ? loadKoEdits() : {};
+  const enEdits = loadEnEdits ? loadEnEdits() : {};
+  const srs = loadSRS();
+
+  document.getElementById('chs-title').textContent = ch ? ch.name : 'Ch.'+chId;
+  document.getElementById('chs-counter').textContent = sents.length+'개';
+
+  const el = document.getElementById('chs-list');
+  el.innerHTML = '';
+
+  sents.forEach(s => {
+    const ko = koEdits[s.no] || s.ko;
+    const en = enEdits[s.no] || s.en;
+    const card = getCard(srs, s.no);
+    const seen = card.seen;
+    const mastered = isMastered(card);
+
+    const div = document.createElement('div');
+    div.style.cssText = 'background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:6px';
+    div.innerHTML = `
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+        <div style="flex:1;min-width:0">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-bottom:4px">
+            #${s.no}
+            ${mastered ? '<span style="color:var(--a3)">🏆 완전습득</span>' : seen ? '<span style="color:var(--a4)">✓ 학습됨</span>' : '<span style="color:var(--muted)">미학습</span>'}
+          </div>
+          <div style="font-size:15px;font-weight:600;color:var(--text);line-height:1.5;margin-bottom:4px">${en}</div>
+          <div style="font-size:13px;color:var(--muted)">${ko}</div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:4px">${s.sit||''}</div>
+        </div>
+        <button onclick="openSentEditModal(${s.no})" style="
+          flex-shrink:0;padding:7px 10px;background:none;
+          border:1px solid var(--border);border-radius:8px;
+          color:var(--muted);cursor:pointer;font-size:13px;transition:.2s
+        " onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
+           onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">✏️</button>
+      </div>`;
+    el.appendChild(div);
+  });
+
+  show('ch-sentences');
+}
+
+function openSentEditModal(no){
+  const s = (window.S||S).find(x=>x.no===no);
+  if(!s) return;
+  const koEdits = loadKoEdits ? loadKoEdits() : {};
+  const enEdits = loadEnEdits ? loadEnEdits() : {};
+
+  _editingNo = no;
+  document.getElementById('sent-edit-no').textContent = '#'+no+' · Ch.'+s.ch+' · '+s.sit;
+  document.getElementById('sent-edit-en').value = enEdits[no] || s.en;
+  document.getElementById('sent-edit-ko').value = koEdits[no] || s.ko;
+  document.getElementById('sent-edit-en').style.borderColor = 'var(--border)';
+  document.getElementById('sent-edit-ko').style.borderColor = 'var(--border)';
+  document.getElementById('sent-edit-modal').style.display = 'flex';
+  setTimeout(()=>document.getElementById('sent-edit-en').focus(), 100);
+}
+
+function closeSentEditModal(){
+  document.getElementById('sent-edit-modal').style.display = 'none';
+  _editingNo = null;
+}
+
+function submitSentEdit(){
+  if(!_editingNo) return;
+  const no = _editingNo;
+  const newEn = document.getElementById('sent-edit-en').value.trim();
+  const newKo = document.getElementById('sent-edit-ko').value.trim();
+  if(!newEn || !newKo){ showToast('영어와 한국어를 모두 입력해주세요'); return; }
+
+  // 영어 수정 저장
+  const enEdits = loadEnEdits ? loadEnEdits() : {};
+  enEdits[no] = newEn;
+  saveEnEdits(enEdits);
+
+  // 한국어 수정 저장
+  const koEdits = loadKoEdits ? loadKoEdits() : {};
+  koEdits[no] = newKo;
+  saveKoEdits(koEdits);
+
+  // S 배열도 즉시 반영
+  const s = (window.S||S).find(x=>x.no===no);
+  if(s){ s.en = newEn; s.ko = newKo; }
+
+  // sessionStorage 반영
+  try {
+    const ss = JSON.parse(sessionStorage.getItem('eng800_today_cards')||'[]');
+    ss.forEach(c=>{ if(c.no===no){ c.en=newEn; c.ko=newKo; } });
+    sessionStorage.setItem('eng800_today_cards', JSON.stringify(ss));
+  } catch(e){}
+
+  closeSentEditModal();
+  // 목록 새로고침
+  const chId = s?.ch;
+  if(chId) openChSentences(chId);
+  showToast('✅ 문장이 수정됐어요!');
+}
+
+// ESC로 수정 모달 닫기
+document.addEventListener('keydown', function(e){
+  if(e.key==='Escape' && document.getElementById('sent-edit-modal')?.style.display==='flex'){
+    closeSentEditModal();
+  }
+});
+
+// 모달 바깥 클릭 닫기
+document.getElementById('sent-edit-modal')?.addEventListener('click', function(e){
+  if(e.target===this) closeSentEditModal();
+});
 
 // ── INIT ──
 // 레벨별 SRS 키 초기화
