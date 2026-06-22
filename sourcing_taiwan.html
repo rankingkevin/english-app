@@ -711,85 +711,95 @@ async function runSearch(isMore){
   const interestGuide=interestList.length>0
     ?`관심 브랜드(${interestList.slice(0,5).join(', ')})와 유사한 감성·컨셉 브랜드 우선`
     :'';
-  const kidsGuide=hasKids?'어린이 카테고리는 "어린이용/키즈" 제품 전문 브랜드만. KC인증·식약처 허가 브랜드 우선.':'';
+  const kidsGuide=hasKids?'어린이 카테고리는 5~12세 타깃 제품 브랜드 포함. 어린이 전문 또는 키즈 라인 있는 브랜드.':'';
 
-  // 토큰 절약: 핵심만 담은 간결한 프롬프트
-  const prompt=`너는 한국 인디·중소 브랜드 전문가야. 아래 카테고리에서 실제 존재하는 브랜드를 알려줘.
+  const buildPrompt=(cats, exclude)=>`너는 한국 인디·중소 브랜드 전문가야. 아래 카테고리에서 한국 인디·중소 브랜드를 최대한 많이 알려줘.
 
-카테고리: ${pickedCats.join(', ')}
+카테고리: ${cats.join(', ')}
 ${kidsGuide}
 ${interestGuide}
 
-[필수 조건]
-- 반드시 실제 존재하는 브랜드만 (올리브영·무신사·스마트스토어·자사몰 중 하나 이상)
-- 확실히 알고 있는 브랜드만 포함. 불확실하면 절대 넣지 말 것
-- 인디·중소 브랜드만 (대기업·상장사·연매출 500억+ 제외)
-- 최근 3년 내 론칭, SNS 활발, 디자인 감도 좋은 브랜드 우선
+[조건]
+- 실제 존재하는 브랜드 (올리브영·무신사·스마트스토어·자사몰·인스타그램 중 하나 이상)
+- 인디·중소 브랜드 (대기업·상장사·연매출 500억+ 제외)
+- 최근 5년 내 론칭 브랜드 우선, SNS 활발한 브랜드
 - 대만 수출 적합 (고온다습 기후, K-콘텐츠 영향, 위생 관심)
-${excludeStr?`- 제외 (이미 소싱): ${excludeStr}`:''}
+- 확실하지 않더라도 알고 있는 브랜드면 포함. 단 완전히 모르는 브랜드는 넣지 말 것
+${exclude?`- 제외 (이미 소싱됨): ${exclude}`:''}
 
-[출력] JSON 배열만. 다른 텍스트 절대 금지. ${targetCount}개. 각 필드는 최대한 짧게.
-[{"name":"브랜드명","category":"카테고리","concept":"컨셉 한 줄(20자 이내)","export_potential":"높음/중간/낮음","platform":"올리브영/무신사/스마트스토어","is_kids":false}]`;
+[출력] JSON 배열만. 다른 텍스트 절대 금지. 정확히 ${targetCount}개 채울 것.
+[{"name":"브랜드명","category":"카테고리","concept":"컨셉 한 줄","export_potential":"높음/중간/낮음","platform":"올리브영/무신사/스마트스토어/인스타그램 등","is_kids":false}]`;
 
   try{
     addLog('> Gemini API 호출 중...');
     showStatus('소싱 중... (10~20초)','loading');
 
-    const controller=new AbortController();
-    const timeoutId=setTimeout(()=>controller.abort(),60000);
+    // Gemini 호출 함수
+    const callGemini=async(promptText)=>{
+      const controller=new AbortController();
+      const timeoutId=setTimeout(()=>controller.abort(),60000);
+      try{
+        const res=await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,
+          {method:'POST',headers:{'Content-Type':'application/json'},
+           signal:controller.signal,
+           body:JSON.stringify({
+             contents:[{parts:[{text:promptText}]}],
+             generationConfig:{temperature:0.5,maxOutputTokens:16000}
+           })}
+        );
+        clearTimeout(timeoutId);
+        if(!res.ok){
+          const err=await res.json();const msg=err.error?.message||'API 오류';
+          if(isQuota(msg)){showStatus('한도 초과 — 잠시 후 다시 시도해주세요.','warn');showQuotaBox();throw new Error('QUOTA');}
+          throw new Error(msg);
+        }
+        const data=await res.json();
+        let raw='';
+        const cand=data.candidates?.[0];
+        if(cand?.content?.parts){for(const p of cand.content.parts){if(p.text)raw+=p.text;}}
+        const fr=cand?.finishReason||'unknown';
+        addLog('> 응답 수신 ('+raw.trim().length+'자) · 종료: '+fr);
+        if(fr==='MAX_TOKENS') addLog('> ⚠ 응답 잘림');
+        return raw.trim();
+      }catch(e){clearTimeout(timeoutId);throw e;}
+    };
 
-    let res;
-    try{
-      res=await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,
-        {method:'POST',headers:{'Content-Type':'application/json'},
-         signal:controller.signal,
-         body:JSON.stringify({
-           contents:[{parts:[{text:prompt}]}],
-           generationConfig:{
-             temperature:0.2,
-             maxOutputTokens:16000
-           }
-         })}
-      );
-    }catch(fetchErr){
-      clearTimeout(timeoutId);
-      if(fetchErr.name==='AbortError'){
-        showStatus('응답 시간 초과. 다시 시도해주세요.','error');
-        addLog('> 타임아웃 (60초 초과)');
-        return;
-      }
-      throw fetchErr;
-    }
-    clearTimeout(timeoutId);
-    if(!res.ok){
-      const err=await res.json();const msg=err.error?.message||'API 오류';
-      if(isQuota(msg)){showStatus('한도 초과 — 잠시 후 다시 시도해주세요.','warn');showQuotaBox();return;}
-      throw new Error(msg);
-    }
-    const data=await res.json();
-    let rawText='';
-    const candidate=data.candidates?.[0];
-    if(candidate?.content?.parts){for(const p of candidate.content.parts){if(p.text)rawText+=p.text;}}
-    rawText=rawText.trim();
-    const finishReason=candidate?.finishReason||'unknown';
-    addLog('> 응답 수신 ('+rawText.length+'자) · 종료 이유: '+finishReason);
-    if(isMore) addMoreLog('> 응답 수신 · 파싱 중...');
-    if(finishReason==='MAX_TOKENS'){
-      addLog('> 경고: 토큰 한도로 응답 잘림 — 파싱 시도');
-      if(isMore) addMoreLog('> ⚠ 응답 잘림 — 일부만 저장될 수 있어요');
-    }
-    if(candidate?.groundingMetadata?.webSearchQueries){
-      addLog('> 웹검색 ✓ ('+candidate.groundingMetadata.webSearchQueries.length+'개 쿼리)');
-    }
+    // 1차 호출
+    const prompt=buildPrompt(pickedCats, excludeStr);
+    let rawText=await callGemini(prompt);
     let parsed;
-    try{parsed=robustParse(rawText);addLog('> 파싱 성공: '+parsed.length+'개');}
-    catch(pe){
-      // 파싱 실패 시 원본 첫 200자 로그에 표시
-      addLog('> 파싱 실패. 원본 앞 200자: '+rawText.slice(0,200));
+    try{
+      parsed=robustParse(rawText);
+      addLog('> 1차 파싱 성공: '+parsed.length+'개');
+    }catch(pe){
+      addLog('> 파싱 실패. 원본: '+rawText.slice(0,200));
       const rb=document.getElementById('rawBox');rb.className='raw-box';rb.style.display='block';
       rb.textContent='[AI 원본 응답]\n'+rawText;
       throw new Error('파싱 실패');
+    }
+    if(isMore) addMoreLog('> 1차: '+parsed.length+'개 확보');
+
+    // 결과 부족 시 자동 재시도 (목표의 60% 미만)
+    if(parsed.length < Math.ceil(targetCount*0.6)){
+      addLog('> 결과 부족 ('+parsed.length+'개/'+targetCount+'개) — 다른 카테고리 재시도...');
+      if(isMore) addMoreLog('> 결과 부족 — 재시도 중...');
+      showStatus('결과 부족 — 재시도 중...','loading');
+      const usedCats=new Set(pickedCats);
+      const altCats=getSelectedCats().filter(x=>!usedCats.has(x.cat)).sort(()=>Math.random()-0.5).slice(0,4).map(x=>x.cat);
+      if(altCats.length>0){
+        const existingNames=[...parsed.map(b=>b.name),...recentNames].join(', ');
+        const prompt2=buildPrompt(altCats, existingNames);
+        try{
+          const rawText2=await callGemini(prompt2);
+          const parsed2=robustParse(rawText2);
+          addLog('> 재시도 성공: '+parsed2.length+'개 추가');
+          if(isMore) addMoreLog('> 재시도: '+parsed2.length+'개 추가');
+          parsed=[...parsed,...parsed2];
+        }catch(e){
+          if(e.message!=='QUOTA') addLog('> 재시도 실패 — 1차 결과만 사용');
+        }
+      }
     }
 
     const today=new Date().toLocaleDateString('ko-KR');
