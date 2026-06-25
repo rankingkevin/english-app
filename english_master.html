@@ -4004,6 +4004,7 @@ function applyEnEdits(){
 }
 
 function startHardMode(){
+  const hard = getHardWords();
   if(!hard.length){ showToast('취약 문장이 없어요! 계속 학습해요 💪'); return; }
   TSES = { cards: hard, idx: 0, mode: 'hard' };
   document.getElementById('typing-title').textContent = '😓 취약 문장 집중 복습';
@@ -4280,6 +4281,12 @@ function showTypingDone(){
   const done = document.getElementById('typing-done');
   done.style.display = 'flex';
   done.style.flexDirection = 'column';
+
+  // 학습 완료 시 이어하기 진행 상황 삭제
+  try {
+    localStorage.removeItem('eng800_session_progress');
+    localStorage.removeItem('eng800_session_progress_lv' + CURRENT_LEVEL);
+  } catch(e){}
 
   // ── streak 카운트: 챕터/취약 모드 제외, 전체 오늘 학습 완주 시 하루 1회만 ──
   const meta = loadMeta();
