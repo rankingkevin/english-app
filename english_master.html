@@ -913,6 +913,13 @@ const CHAPTERS3 = [
 let CURRENT_LEVEL = 1;
 
 function selectLevel(lv){
+  // 레벨 전환 전 현재 풀/진행상황을 레벨키로 백업
+  try {
+    const curPool = localStorage.getItem('eng800_today_pool');
+    if(curPool) localStorage.setItem('eng800_today_pool_lv' + CURRENT_LEVEL, curPool);
+    const curProg = localStorage.getItem('eng800_session_progress');
+    if(curProg) localStorage.setItem('eng800_session_progress_lv' + CURRENT_LEVEL, curProg);
+  } catch(e){}
   CURRENT_LEVEL = lv;
   // S, CHAPTERS 전환
   window.S = lv===1 ? S1 : lv===2 ? S2 : S3;
@@ -4282,10 +4289,14 @@ function showTypingDone(){
   done.style.display = 'flex';
   done.style.flexDirection = 'column';
 
-  // 학습 완료 시 이어하기 진행 상황 삭제
+  // 학습 완료 시 완료 상태로 저장 (레벨 버튼 표시용)
   try {
-    localStorage.removeItem('eng800_session_progress');
-    localStorage.removeItem('eng800_session_progress_lv' + CURRENT_LEVEL);
+    const pool = JSON.parse(localStorage.getItem('eng800_today_pool')||'null');
+    const total = pool && pool.cards ? pool.cards.length : 30;
+    const todayStr = new Date().toISOString().slice(0,10);
+    const doneData = JSON.stringify({idx: total, date: todayStr});
+    localStorage.setItem('eng800_session_progress', doneData);
+    localStorage.setItem('eng800_session_progress_lv' + CURRENT_LEVEL, doneData);
   } catch(e){}
 
   // ── streak 카운트: 챕터/취약 모드 제외, 전체 오늘 학습 완주 시 하루 1회만 ──
@@ -4450,7 +4461,8 @@ function updateHome(){
     const progress = JSON.parse(localStorage.getItem('eng800_session_progress')||'null');
     const today = new Date().toISOString().slice(0,10);
     const cached = JSON.parse(localStorage.getItem('eng800_today_pool')||'null');
-    const hasResume = progress && progress.date===today && cached && cached.date===today && progress.idx>0 && progress.idx<(cached.cards?.length||0);
+    const totalCards = cached?.cards?.length || 30;
+    const hasResume = progress && progress.date===today && cached && cached.date===today && progress.idx>0 && progress.idx<totalCards;
     const resumeBtn = document.getElementById('resume-study-btn');
     if(resumeBtn) resumeBtn.style.display = hasResume ? 'block' : 'none';
   } catch(e){}
