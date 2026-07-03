@@ -917,8 +917,12 @@ function selectLevel(lv){
   try {
     const curPool = localStorage.getItem('eng800_today_pool');
     if(curPool) localStorage.setItem('eng800_today_pool_lv' + CURRENT_LEVEL, curPool);
-    const curProg = localStorage.getItem('eng800_session_progress');
-    if(curProg) localStorage.setItem('eng800_session_progress_lv' + CURRENT_LEVEL, curProg);
+    // session_progress가 오늘 날짜인 경우만 백업
+    const curProg = JSON.parse(localStorage.getItem('eng800_session_progress')||'null');
+    const todayStr = new Date().toISOString().slice(0,10);
+    if(curProg && curProg.date === todayStr){
+      localStorage.setItem('eng800_session_progress_lv' + CURRENT_LEVEL, JSON.stringify(curProg));
+    }
   } catch(e){}
   CURRENT_LEVEL = lv;
   // S, CHAPTERS 전환
@@ -4073,8 +4077,10 @@ function startTyping(chId){
     } catch(e){}
     }
     try { sessionStorage.setItem('eng800_today_cards', JSON.stringify(pool)); } catch(e){}
-    // 세션 진행 상황 초기화
-    try { localStorage.removeItem('eng800_session_progress'); } catch(e){}
+    // 새 오늘학습 시작 시에만 세션 초기화 (챕터 모드는 건드리지 않음)
+    if(!chId){
+      try { localStorage.removeItem('eng800_session_progress'); } catch(e){}
+    }
   } else {
     pool = (window.S||S).filter(s=>s.ch===chId).sort(()=>Math.random()-.5).slice(0,30);
   }
@@ -4269,8 +4275,8 @@ function typingNext(){
   const inp = document.getElementById('typing-input');
   if(inp) inp.disabled = false;
   TSES.idx++;
-  // 이어하기용 진행 상황 저장 (현재 레벨별로 저장)
-  if(!TSES.chId){
+  // 이어하기용 진행 상황 저장 (오늘학습 전용, 챕터/취약 모드 제외)
+  if(!TSES.chId && !TSES.mode){
     try {
       const prog = JSON.stringify({idx: TSES.idx, date: new Date().toISOString().slice(0,10)});
       localStorage.setItem('eng800_session_progress', prog);
@@ -4289,15 +4295,17 @@ function showTypingDone(){
   done.style.display = 'flex';
   done.style.flexDirection = 'column';
 
-  // 학습 완료 시 완료 상태로 저장 (레벨 버튼 표시용)
-  try {
-    const pool = JSON.parse(localStorage.getItem('eng800_today_pool')||'null');
-    const total = pool && pool.cards ? pool.cards.length : 30;
-    const todayStr = new Date().toISOString().slice(0,10);
-    const doneData = JSON.stringify({idx: total, date: todayStr});
-    localStorage.setItem('eng800_session_progress', doneData);
-    localStorage.setItem('eng800_session_progress_lv' + CURRENT_LEVEL, doneData);
-  } catch(e){}
+  // 오늘 학습 완료 시에만 완료 상태 저장 (챕터/취약 모드 제외)
+  if(!TSES.chId && !TSES.mode){
+    try {
+      const pool = JSON.parse(localStorage.getItem('eng800_today_pool')||'null');
+      const total = pool && pool.cards ? pool.cards.length : 30;
+      const todayStr = new Date().toISOString().slice(0,10);
+      const doneData = JSON.stringify({idx: total, date: todayStr});
+      localStorage.setItem('eng800_session_progress', doneData);
+      localStorage.setItem('eng800_session_progress_lv' + CURRENT_LEVEL, doneData);
+    } catch(e){}
+  }
 
   // ── streak 카운트: 챕터/취약 모드 제외, 전체 오늘 학습 완주 시 하루 1회만 ──
   const meta = loadMeta();
