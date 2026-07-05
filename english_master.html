@@ -913,15 +913,20 @@ const CHAPTERS3 = [
 let CURRENT_LEVEL = 1;
 
 function selectLevel(lv){
-  // 레벨 전환 전 현재 풀/진행상황을 레벨키로 백업
+  // 레벨 전환 전 현재 풀/진행상황을 현재 레벨키로만 백업
+  // (다른 레벨 키로는 절대 복사하지 않음)
   try {
+    const todayStr = new Date().toISOString().slice(0,10);
     const curPool = localStorage.getItem('eng800_today_pool');
     if(curPool) localStorage.setItem('eng800_today_pool_lv' + CURRENT_LEVEL, curPool);
-    // session_progress가 오늘 날짜인 경우만 백업
-    const curProg = JSON.parse(localStorage.getItem('eng800_session_progress')||'null');
-    const todayStr = new Date().toISOString().slice(0,10);
-    if(curProg && curProg.date === todayStr){
-      localStorage.setItem('eng800_session_progress_lv' + CURRENT_LEVEL, JSON.stringify(curProg));
+    // session_progress는 현재 레벨 전용키로만 백업 (다른 레벨 덮어쓰기 금지)
+    const curProg = JSON.parse(localStorage.getItem('eng800_session_progress_lv' + CURRENT_LEVEL)||'null');
+    if(!curProg){
+      // 현재 레벨키가 없으면 공통키에서 오늘날짜 것만 백업
+      const prog = JSON.parse(localStorage.getItem('eng800_session_progress')||'null');
+      if(prog && prog.date === todayStr){
+        localStorage.setItem('eng800_session_progress_lv' + CURRENT_LEVEL, JSON.stringify(prog));
+      }
     }
   } catch(e){}
   CURRENT_LEVEL = lv;
