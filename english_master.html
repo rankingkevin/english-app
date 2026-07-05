@@ -3687,6 +3687,14 @@ function resetTimer(){
   document.getElementById('timer-btn').textContent = '▶';
 }
 
+function resetAndStartTimer(){
+  resetTimer();
+  // 자동 시작
+  TIMER.running = true;
+  TIMER.interval = setInterval(timerTick, 1000);
+  document.getElementById('timer-btn').textContent = '⏸';
+}
+
 function _timerAlert(title, msg){
   showToast(title + ' ' + msg);
   // 브라우저 알림 (허용된 경우)
@@ -4020,7 +4028,7 @@ function startHardMode(){
   TSES = { cards: hard, idx: 0, mode: 'hard' };
   document.getElementById('typing-title').textContent = '😓 취약 문장 집중 복습';
   if(Notification && Notification.permission === 'default') Notification.requestPermission();
-  resetTimer();
+  resetAndStartTimer();
   show('typing');
   renderTypingCard();
 }
@@ -4089,8 +4097,12 @@ function startTyping(chId){
   document.getElementById('typing-title').textContent = ch ? ch.name + ' · 타이핑' : '타이핑 연습';
   // 브라우저 알림 권한 요청 (포모도로 완료 알림용)
   try { if(Notification && Notification.permission === 'default') Notification.requestPermission(); } catch(e) {}
-  // 타이머 초기화
-  resetTimer();
+  // 오늘학습만 타이머 자동 시작, 챕터는 리셋만
+  if(!chId){
+    resetAndStartTimer();
+  } else {
+    resetTimer();
+  }
   show('typing');
   renderTypingCard();
 }
@@ -5010,7 +5022,7 @@ function resumeStudy(){
     TSES = { cards: pool, idx: progress.idx, chId: null };
     document.getElementById('typing-title').textContent = '타이핑 연습';
     try { sessionStorage.setItem('eng800_today_cards', JSON.stringify(pool)); } catch(e){}
-    resetTimer();
+    resetAndStartTimer();
     show('typing');
     renderTypingCard();
     showToast('▶ 이어서 학습해요! (' + progress.idx + '/' + pool.length + ')');
