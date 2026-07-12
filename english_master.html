@@ -737,10 +737,16 @@ button{font-family:var(--sans)}
         <div style="background:var(--card);border:1px solid rgba(78,203,113,.4);border-radius:14px;padding:20px 22px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
             <div style="font-family:var(--mono);font-size:10px;color:var(--a4);letter-spacing:.2em">✅ 정답 문장</div>
-            <button onclick="_editEn()" title="영어 수정" style="
-              background:none;border:none;color:var(--dim);cursor:pointer;
-              font-size:14px;padding:4px;border-radius:6px;transition:.2s
-            " onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--dim)'">✏️</button>
+            <div style="display:flex;align-items:center;gap:6px">
+              <button id="star-btn" onclick="toggleStar()" title="즐겨찾기 - 내 문장에 추가" style="
+                background:none;border:none;color:var(--dim);cursor:pointer;
+                font-size:20px;padding:4px;border-radius:6px;transition:.2s;line-height:1
+              ">☆</button>
+              <button onclick="_editEn()" title="영어 수정" style="
+                background:none;border:none;color:var(--dim);cursor:pointer;
+                font-size:14px;padding:4px;border-radius:6px;transition:.2s
+              " onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--dim)'">✏️</button>
+            </div>
           </div>
           <div id="typing-answer" style="font-size:20px;font-weight:700;color:var(--text);line-height:1.5"></div>
           <div style="display:flex;gap:8px;margin-top:12px">
@@ -1812,7 +1818,7 @@ const S = [
 {no:855,ch:9,en:"Spill the tea!",ko:"이야기해봐요!",sit:"호기심"},
 {no:856,ch:9,en:"What's the tea?",ko:"무슨 일이에요?",sit:"호기심"},
 {no:857,ch:9,en:"Drama!",ko:"완전 드라마틱해요!",sit:"반응"},
-{no:858,ch:9,en:"It's giving cozy.",ko:"아늑한 느낌이에요.",sit:"표현"},
+{no:858,ch:9,en:"This feels really cozy.",ko:"정말 아늑한 느낌이에요.",sit:"표현"},
 {no:859,ch:9,en:"She's glowing.",ko:"그녀가 빛나요.",sit:"감탄"},
 {no:860,ch:9,en:"You're glowing!",ko:"당신 너무 빛나요!",sit:"칭찬"},
 {no:861,ch:9,en:"He's a legend.",ko:"그는 전설이에요.",sit:"감탄"},
@@ -1820,7 +1826,7 @@ const S = [
 {no:863,ch:9,en:"That was a W.",ko:"완전 승리예요.",sit:"성공"},
 {no:864,ch:9,en:"That's an L.",ko:"그건 실패예요.",sit:"실패"},
 {no:865,ch:9,en:"We ate that up.",ko:"완전 잘했어요.",sit:"성공"},
-{no:866,ch:9,en:"She ate and left no crumbs.",ko:"완벽하게 해냈어요.",sit:"칭찬"},
+{no:866,ch:9,en:"She absolutely nailed it.",ko:"완벽하게 해냈어요.",sit:"칭찬"},
 {no:869,ch:9,en:"I can't deal.",ko:"못 참겠어요.",sit:"감정"},
 {no:870,ch:9,en:"I'm screaming.",ko:"너무 웃겨요.",sit:"유머"},
 {no:871,ch:9,en:"I'm not gonna lie.",ko:"솔직히 말하면요.",sit:"솔직함"},
@@ -1838,7 +1844,7 @@ const S = [
 {no:883,ch:9,en:"Let's link up.",ko:"만나요.",sit:"약속"},
 {no:884,ch:9,en:"We should hang.",ko:"우리 만나야 해요.",sit:"약속"},
 {no:886,ch:9,en:"Peace out.",ko:"잘 있어요.",sit:"작별"},
-{no:888,ch:9,en:"It's giving main character energy.",ko:"완전 주인공 같아요.",sit:"표현"},
+{no:888,ch:9,en:"She totally owns the room.",ko:"완전히 공간을 장악하고 있어요.",sit:"표현"},
 {no:889,ch:9,en:"She's serving.",ko:"완전 멋지게 차려입었어요.",sit:"패션"},
 {no:890,ch:9,en:"You slayed that.",ko:"완전 잘했어요.",sit:"칭찬"},
 {no:891,ch:9,en:"That's a flex.",ko:"그거 자랑이네요.",sit:"표현"},
@@ -1849,7 +1855,7 @@ const S = [
 {no:896,ch:9,en:"That's a vibe check.",ko:"분위기 체크예요.",sit:"표현"},
 {no:897,ch:9,en:"We stan.",ko:"완전 팬이에요.",sit:"지지"},
 {no:898,ch:9,en:"I stan her.",ko:"그녀 완전 팬이에요.",sit:"지지"},
-{no:899,ch:9,en:"Periodt.",ko:"그게 맞아요, 끝.",sit:"강조"},
+{no:899,ch:9,en:"And that's final.",ko:"그리고 그게 끝이에요.",sit:"강조"},
 {no:900,ch:9,en:"Say less.",ko:"말 안 해도 알아요.",sit:"이해"},
 {no:902,ch:10,en:"It's a piece of cake.",ko:"식은 죽 먹기예요.",sit:"쉬움"},
 {no:903,ch:10,en:"Hit the nail on the head.",ko:"정확히 맞췄어요.",sit:"정확"},
@@ -1916,7 +1922,7 @@ const S = [
 {no:1008,ch:9,en:"You're so extra right now.",ko:"지금 너무 오버하고 있어요.",sit:"표현"},
 {no:1009,ch:9,en:"I'm shaking.",ko:"너무 떨려요.",sit:"감정"},
 {no:1010,ch:9,en:"It do be like that.",ko:"그런 경우도 있죠.",sit:"공감"},
-{no:1011,ch:9,en:"I simp for this show.",ko:"이 드라마 완전 빠져있어요.",sit:"열정"},
+{no:1011,ch:9,en:"I'm totally hooked on this show.",ko:"이 드라마에 완전 빠져있어요.",sit:"열정"},
 {no:1012,ch:9,en:"He ghosted me.",ko:"그가 연락을 끊었어요.",sit:"관계"},
 {no:1013,ch:9,en:"Don't ghost me.",ko:"연락 끊지 마요.",sit:"관계"},
 {no:1014,ch:9,en:"She's a keeper.",ko:"그녀는 놓치면 안 되는 사람이에요.",sit:"관계"},
@@ -2990,11 +2996,11 @@ const S3 = [
   {no:10,ch:1,en:"Pick me, choose me, love me.",ko:"저를 선택해줘요, 골라줘요, 사랑해줘요.",sit:"호소"},
   {no:11,ch:1,en:"I am not the one.",ko:"저는 그런 사람 아니에요.",sit:"경고"},
   {no:12,ch:1,en:"Not today.",ko:"오늘은 안 돼요.",sit:"거절"},
-  {no:13,ch:1,en:"Winter is coming.",ko:"겨울이 오고 있어요.",sit:"경고"},
+  {no:13,ch:1,en:"I have a bad feeling about this.",ko:"나쁜 예감이 들어요.",sit:"직감"},
   {no:14,ch:1,en:"You know nothing.",ko:"당신은 아무것도 몰라요.",sit:"지적"},
-  {no:15,ch:1,en:"The night is dark and full of terrors.",ko:"밤은 어둡고 공포로 가득해요.",sit:"드라마"},
-  {no:16,ch:1,en:"A Lannister always pays his debts.",ko:"은혜는 반드시 갚아요.",sit:"약속"},
-  {no:17,ch:1,en:"Hold the door.",ko:"문을 잡아요.",sit:"드라마"},
+  {no:15,ch:1,en:"Expect the unexpected.",ko:"예상치 못한 일을 대비해요.",sit:"충고"},
+  {no:16,ch:1,en:"I always keep my promises.",ko:"저는 항상 약속을 지켜요.",sit:"신뢰"},
+  {no:17,ch:1,en:"Can you hold the elevator?",ko:"엘리베이터 잡아줄 수 있어요?",sit:"일상"},
   {no:18,ch:1,en:"I am the one who knocks.",ko:"제가 두드리는 사람이에요.",sit:"자신감"},
   {no:19,ch:1,en:"Say my name.",ko:"제 이름을 말해봐요.",sit:"권위"},
   {no:20,ch:1,en:"Yeah, science!",ko:"이야, 과학이에요!",sit:"드라마"},
@@ -3003,7 +3009,7 @@ const S3 = [
   {no:23,ch:1,en:"No touching!",ko:"손대지 마요!",sit:"경고"},
   {no:24,ch:1,en:"I don't understand the question.",ko:"질문을 이해 못 하겠어요.",sit:"무관심"},
   {no:25,ch:1,en:"That's what she said.",ko:"그녀가 그렇게 말했어요. (농담)",sit:"유머"},
-  {no:26,ch:1,en:"Bears, beets, Battlestar Galactica.",ko:"곰, 비트, 배틀스타 갈락티카.",sit:"드라마"},
+  {no:26,ch:1,en:"That's completely random.",ko:"완전히 뜬금없어요.",sit:"표현"},
   {no:27,ch:1,en:"That's what I'm talking about.",ko:"바로 그거예요.",sit:"동의"},
   {no:28,ch:1,en:"Did I do that?",ko:"제가 그랬나요?",sit:"놀람"},
   {no:29,ch:1,en:"Got it? Good.",ko:"알겠어요? 좋아요.",sit:"확인"},
@@ -3021,9 +3027,9 @@ const S3 = [
   {no:41,ch:1,en:"Why so serious?",ko:"왜 그렇게 심각해요?",sit:"농담"},
   {no:42,ch:1,en:"I'm Batman.",ko:"저는 배트맨이에요.",sit:"드라마"},
   {no:43,ch:1,en:"With great power comes great responsibility.",ko:"큰 힘에는 큰 책임이 따라요.",sit:"교훈"},
-  {no:44,ch:1,en:"I am Iron Man.",ko:"저는 아이언맨이에요.",sit:"드라마"},
+  {no:44,ch:1,en:"I'm the one in charge here.",ko:"제가 책임자예요.",sit:"자신감"},
   {no:45,ch:1,en:"I can do this all day.",ko:"하루 종일 이럴 수 있어요.",sit:"끈기"},
-  {no:46,ch:1,en:"Avengers, assemble!",ko:"어벤져스, 집합!",sit:"드라마"},
+  {no:46,ch:1,en:"Let's all get together on this.",ko:"다 같이 해봐요.",sit:"협력"},
   {no:47,ch:1,en:"Whatever it takes.",ko:"무슨 일이 있어도 해낼게요.",sit:"결의"},
   {no:48,ch:1,en:"I am inevitable.",ko:"저는 필연적이에요.",sit:"드라마"},
   {no:49,ch:1,en:"On your left.",ko:"당신 왼쪽에 있어요.",sit:"드라마"},
@@ -3043,9 +3049,9 @@ const S3 = [
   {no:63,ch:1,en:"You complete me.",ko:"당신은 저를 완완하게 해줘요.",sit:"사랑"},
   {no:64,ch:1,en:"Show me the money!",ko:"돈을 보여줘요!",sit:"드라마"},
   {no:65,ch:1,en:"You can't handle the truth!",ko:"진실을 감당 못 해요!",sit:"드라마"},
-  {no:66,ch:1,en:"There's no crying in baseball.",ko:"야구에서는 울지 않아요.",sit:"드라마"},
+  {no:66,ch:1,en:"Toughen up a little.",ko:"조금 더 강해져봐요.",sit:"충고"},
   {no:67,ch:1,en:"Life is like a box of chocolates.",ko:"인생은 초콜릿 상자 같아요.",sit:"교훈"},
-  {no:68,ch:1,en:"Run, Forrest, run!",ko:"뛰어요, 포레스트, 뛰어요!",sit:"드라마"},
+  {no:68,ch:1,en:"Go, go, go! Don't stop!",ko:"가요, 가요! 멈추지 마요!",sit:"격려"},
   {no:69,ch:1,en:"Houston, we have a problem.",ko:"문제가 생겼어요.",sit:"위기"},
   {no:70,ch:1,en:"Go ahead, make my day.",ko:"어디 한번 해봐요.",sit:"도발"},
   {no:71,ch:1,en:"I'll be back.",ko:"다시 올게요.",sit:"약속"},
@@ -3058,26 +3064,26 @@ const S3 = [
   {no:78,ch:1,en:"I've got a bad feeling about this.",ko:"이거 뭔가 나쁜 예감이 들어요.",sit:"직감"},
   {no:79,ch:1,en:"That's not how the Force works.",ko:"포스는 그렇게 작동하지 않아요.",sit:"드라마"},
   {no:80,ch:1,en:"To boldly go where no one has gone before.",ko:"누구도 가지 않은 곳으로 과감히 나아가요.",sit:"도전"},
-  {no:81,ch:1,en:"Beam me up.",ko:"저를 올려줘요.",sit:"드라마"},
+  {no:81,ch:1,en:"Get me out of here.",ko:"여기서 꺼내줘요.",sit:"당혹"},
   {no:82,ch:1,en:"Live long and prosper.",ko:"장수하고 번영하세요.",sit:"인사"},
   {no:83,ch:1,en:"Resistance is futile.",ko:"저항은 소용없어요.",sit:"드라마"},
   {no:84,ch:1,en:"My precious.",ko:"제 소중한 것이에요.",sit:"드라마"},
-  {no:85,ch:1,en:"One does not simply walk into Mordor.",ko:"모르도르에 그냥 걸어 들어갈 수는 없어요.",sit:"드라마"},
+  {no:85,ch:1,en:"It's not as easy as it sounds.",ko:"말처럼 쉽지 않아요.",sit:"표현"},
   {no:86,ch:1,en:"Even the smallest person can change the course of the future.",ko:"가장 작은 사람도 미래를 바꿀 수 있어요.",sit:"교훈"},
   {no:87,ch:1,en:"All we have to decide is what to do with the time that is given us.",ko:"주어진 시간으로 무엇을 할지 결정하면 돼요.",sit:"교훈"},
   {no:88,ch:1,en:"Not all those who wander are lost.",ko:"방황하는 자들이 모두 길을 잃은 건 아니에요.",sit:"드라마"},
-  {no:89,ch:1,en:"You shall not pass!",ko:"지나갈 수 없어요!",sit:"드라마"},
+  {no:89,ch:1,en:"No, you can't go through.",ko:"아니요, 지나갈 수 없어요.",sit:"거절"},
   {no:90,ch:1,en:"I'm going on an adventure!",ko:"모험을 떠나요!",sit:"여행"},
-  {no:91,ch:1,en:"In a hole in the ground there lived a hobbit.",ko:"땅 속 구멍에 호비트가 살았어요.",sit:"드라마"},
-  {no:92,ch:1,en:"Clever girl.",ko:"영리한 아이네요.",sit:"감탄"},
+  {no:91,ch:1,en:"Once upon a time in a place far away...",ko:"옛날 옛날 먼 곳에서...",sit:"이야기"},
+  {no:92,ch:1,en:"That was really smart.",ko:"정말 영리했어요.",sit:"칭찬"},
   {no:93,ch:1,en:"Life, uh, finds a way.",ko:"생명은, 어떻게든 길을 찾아요.",sit:"드라마"},
-  {no:94,ch:1,en:"Must go faster.",ko:"더 빨리 가야 해요.",sit:"드라마"},
+  {no:94,ch:1,en:"We need to hurry up.",ko:"서둘러야 해요.",sit:"급함"},
   {no:95,ch:1,en:"That's one small step for man.",ko:"인간에게는 작은 발걸음이에요.",sit:"드라마"},
   {no:96,ch:1,en:"I feel the need — the need for speed.",ko:"속도가 필요해요.",sit:"드라마"},
   {no:97,ch:1,en:"You had me at hello.",ko:"처음 말할 때부터 반했어요.",sit:"사랑"},
   {no:98,ch:1,en:"I'm the king of the world!",ko:"저는 세상의 왕이에요!",sit:"감탄"},
   {no:99,ch:1,en:"I'll never let go.",ko:"절대 놓지 않을게요.",sit:"약속"},
-  {no:100,ch:1,en:"Draw me like one of your French girls.",ko:"저를 그려줘요.",sit:"드라마"},
+  {no:100,ch:1,en:"I want you to remember me like this.",ko:"이렇게 저를 기억해줘요.",sit:"감성"},
   {no:101,ch:2,en:"You can't make this stuff up.",ko:"이런 건 꾸며낼 수도 없어요.",sit:"놀람"},
   {no:102,ch:2,en:"I couldn't make it up if I tried.",ko:"상상도 못 했을 일이에요.",sit:"놀람"},
   {no:103,ch:2,en:"Well, that escalated quickly.",ko:"갑자기 상황이 커졌네요.",sit:"놀람"},
@@ -3127,7 +3133,7 @@ const S3 = [
   {no:151,ch:2,en:"Chickens come home to roost.",ko:"한 일은 결국 돌아와요.",sit:"교훈"},
   {no:152,ch:2,en:"Don't get too comfortable.",ko:"너무 편하게 있지 마요.",sit:"경고"},
   {no:153,ch:2,en:"The other shoe is about to drop.",ko:"뭔가 나쁜 일이 곧 일어날 것 같아요.",sit:"예감"},
-  {no:154,ch:2,en:"I have a bad feeling about this.",ko:"이거 왠지 나쁜 예감이 들어요.",sit:"직감"},
+  {no:154,ch:2,en:"Something feels off about this.",ko:"이게 뭔가 이상한 느낌이에요.",sit:"직감"},
   {no:156,ch:2,en:"I can't put my finger on it.",ko:"딱 꼬집어 말할 수 없어요.",sit:"모호함"},
   {no:158,ch:2,en:"It's in the back of my mind.",ko:"머릿속 한켠에 있어요.",sit:"생각"},
   {no:160,ch:2,en:"Trust your gut.",ko:"직감을 믿어요.",sit:"충고"},
@@ -3156,20 +3162,20 @@ const S3 = [
   {no:184,ch:2,en:"A gift, honestly.",ko:"정말 선물 같은 존재예요.",sit:"감사"},
   {no:185,ch:2,en:"Where would we be without you?",ko:"당신 없이 우리가 어떻게 됐을까요?",sit:"감사"},
   {no:186,ch:2,en:"You're a lifesaver, literally.",ko:"당신은 진짜 구세주예요.",sit:"감사"},
-  {no:187,ch:2,en:"Hero behavior.",ko:"영웅 같은 행동이에요.",sit:"칭찬"},
+  {no:187,ch:2,en:"That was incredibly kind of you.",ko:"정말 친절한 행동이었어요.",sit:"칭찬"},
   {no:188,ch:2,en:"On behalf of everyone, thank you.",ko:"모두를 대표해서 감사해요.",sit:"감사"},
   {no:189,ch:2,en:"The real MVP.",ko:"진짜 MVP예요.",sit:"칭찬"},
-  {no:190,ch:2,en:"GOAT behavior.",ko:"역대 최고 행동이에요.",sit:"칭찬"},
-  {no:191,ch:2,en:"Certified legend.",ko:"공인된 전설이에요.",sit:"칭찬"},
-  {no:192,ch:2,en:"That's hall of fame stuff.",ko:"명예의 전당급이에요.",sit:"칭찬"},
-  {no:193,ch:2,en:"For the history books.",ko:"역사에 남을 일이에요.",sit:"감탄"},
+  {no:190,ch:2,en:"That's the best I've ever seen.",ko:"지금까지 본 것 중 최고예요.",sit:"칭찬"},
+  {no:191,ch:2,en:"You're an absolute legend.",ko:"당신은 진짜 대단한 사람이에요.",sit:"칭찬"},
+  {no:192,ch:2,en:"That deserves recognition.",ko:"인정받을 만한 일이에요.",sit:"칭찬"},
+  {no:193,ch:2,en:"That's one for the record books.",ko:"역사에 남을 일이에요.",sit:"감탄"},
   {no:194,ch:2,en:"The stuff of legend.",ko:"전설적인 거예요.",sit:"감탄"},
-  {no:195,ch:2,en:"Chef's kiss.",ko:"완벽해요.",sit:"감탄"},
-  {no:196,ch:2,en:"*chef's kiss*",ko:"완벽 그 자체예요.",sit:"감탄"},
-  {no:197,ch:2,en:"Peak human achievement.",ko:"인류의 절정이에요.",sit:"감탄"},
+  {no:195,ch:2,en:"Absolutely perfect.",ko:"완벽 그 자체예요.",sit:"감탄"},
+  {no:196,ch:2,en:"This is just perfect.",ko:"이건 그냥 완벽해요.",sit:"감탄"},
+  {no:197,ch:2,en:"Honestly, that's impressive.",ko:"솔직히 정말 인상적이에요.",sit:"감탄"},
   {no:198,ch:2,en:"10 out of 10, would recommend.",ko:"10점 만점에 10점, 추천해요.",sit:"추천"},
   {no:199,ch:2,en:"Would do again, no hesitation.",ko:"망설임 없이 다시 할게요.",sit:"추천"},
-  {no:200,ch:2,en:"No notes.",ko:"흠잡을 데 없어요.",sit:"완벽"},
+  {no:200,ch:2,en:"I wouldn't change a thing.",ko:"바꿀 게 하나도 없어요.",sit:"완벽"},
   {no:201,ch:3,en:"I'm at a loss for words.",ko:"말문이 막혀요.",sit:"놀람"},
   {no:202,ch:3,en:"Words can't describe how I feel.",ko:"어떻게 느끼는지 말로 표현이 안 돼요.",sit:"감정"},
   {no:203,ch:3,en:"I'm overwhelmed in the best way.",ko:"좋은 의미로 벅차요.",sit:"감동"},
@@ -3212,7 +3218,7 @@ const S3 = [
   {no:240,ch:3,en:"I sense something is off.",ko:"뭔가 어긋난 느낌이 들어요.",sit:"직감"},
   {no:242,ch:3,en:"It's been weighing on me.",ko:"계속 마음에 걸려요.",sit:"고민"},
   {no:243,ch:3,en:"I can't stop thinking about it.",ko:"계속 생각이 나요.",sit:"집착"},
-  {no:244,ch:3,en:"It's living rent-free in my head.",ko:"머릿속에서 자리를 차지하고 있어요.",sit:"집착"},
+  {no:244,ch:3,en:"It keeps popping into my head.",ko:"계속 떠올라요.",sit:"집착"},
   {no:245,ch:3,en:"I'm obsessing over it.",ko:"집착하고 있어요.",sit:"집착"},
   {no:246,ch:3,en:"I need to let it go.",ko:"놓아줘야 해요.",sit:"성장"},
   {no:247,ch:3,en:"I'm learning to let go.",ko:"놓는 법을 배우고 있어요.",sit:"성장"},
@@ -3692,12 +3698,12 @@ const S3 = [
   {no:756,ch:8,en:"We're on track.",ko:"궤도에 올라있어요.",sit:"직장"},
   {no:757,ch:8,en:"We hit the target.",ko:"목표를 달성했어요.",sit:"직장"},
   {no:758,ch:8,en:"We exceeded our quota.",ko:"할당량을 초과 달성했어요.",sit:"직장"},
-  {no:759,ch:8,en:"Q4 numbers look great.",ko:"4분기 숫자가 좋아요.",sit:"직장"},
-  {no:760,ch:8,en:"Revenue is up.",ko:"매출이 올랐어요.",sit:"직장"},
-  {no:761,ch:8,en:"Costs are down.",ko:"비용이 줄었어요.",sit:"직장"},
-  {no:762,ch:8,en:"The ROI is strong.",ko:"투자 수익률이 좋아요.",sit:"직장"},
+  {no:759,ch:8,en:"The year-end numbers look great.",ko:"연말 수치가 좋아요.",sit:"직장"},
+  {no:760,ch:8,en:"Sales are up this month.",ko:"이번 달 매출이 올랐어요.",sit:"직장"},
+  {no:761,ch:8,en:"We've been saving money.",ko:"비용을 절감했어요.",sit:"직장"},
+  {no:762,ch:8,en:"We're getting a good return.",ko:"좋은 성과를 내고 있어요.",sit:"직장"},
   {no:763,ch:8,en:"The client is happy.",ko:"클라이언트가 만족해요.",sit:"직장"},
-  {no:764,ch:8,en:"Client retention is improving.",ko:"고객 유지율이 좋아지고 있어요.",sit:"직장"},
+  {no:764,ch:8,en:"Customers keep coming back.",ko:"고객들이 계속 돌아오고 있어요.",sit:"직장"},
   {no:765,ch:8,en:"We closed the deal.",ko:"계약을 성사시켰어요.",sit:"직장"},
   {no:766,ch:8,en:"We landed a new client.",ko:"새 클라이언트를 유치했어요.",sit:"직장"},
   {no:767,ch:8,en:"We're expanding.",ko:"확장하고 있어요.",sit:"직장"},
@@ -3717,7 +3723,7 @@ const S3 = [
   {no:783,ch:8,en:"What does success look like in this role?",ko:"이 역할에서 성공이 어떤 모습인가요?",sit:"직장"},
   {no:784,ch:8,en:"I'd like to set up a one-on-one.",ko:"1:1 미팅을 잡고 싶어요.",sit:"직장"},
   {no:785,ch:8,en:"Can we do a quick sync?",ko:"간단히 동기화 미팅을 할 수 있어요?",sit:"직장"},
-  {no:786,ch:8,en:"Let's debrief after.",ko:"끝나고 정리 미팅해요.",sit:"직장"},
+  {no:786,ch:8,en:"Let's talk about it after.",ko:"끝나고 얘기해요.",sit:"직장"},
   {no:787,ch:8,en:"I need constructive feedback.",ko:"건설적인 피드백이 필요해요.",sit:"직장"},
   {no:788,ch:8,en:"What can I improve on?",ko:"어떤 부분을 개선할 수 있을까요?",sit:"직장"},
   {no:789,ch:8,en:"I'm open to feedback.",ko:"피드백을 받아들일 준비가 돼 있어요.",sit:"직장"},
@@ -3738,10 +3744,10 @@ const S3 = [
   {no:805,ch:9,en:"This broke the internet.",ko:"인터넷이 떠들썩했어요.",sit:"SNS"},
   {no:806,ch:9,en:"The comments section is wild.",ko:"댓글란이 난리예요.",sit:"SNS"},
   {no:807,ch:9,en:"Don't read the comments.",ko:"댓글 읽지 마요.",sit:"충고"},
-  {no:808,ch:9,en:"I got ratio'd.",ko:"댓글이 좋아요보다 많아요.",sit:"SNS"},
-  {no:809,ch:9,en:"The ratio is brutal.",ko:"비율이 처참해요.",sit:"SNS"},
+  {no:808,ch:9,en:"My post got way more criticism than likes.",ko:"제 글이 비판을 많이 받았어요.",sit:"SNS"},
+  {no:809,ch:9,en:"The response was mostly negative.",ko:"반응이 대부분 부정적이에요.",sit:"SNS"},
   {no:810,ch:9,en:"I'm being dragged online.",ko:"온라인에서 욕먹고 있어요.",sit:"SNS"},
-  {no:811,ch:9,en:"Cancel culture is real.",ko:"캔슬 컬처는 진짜예요.",sit:"SNS"},
+  {no:811,ch:9,en:"People get called out publicly now.",ko:"요즘 공개적으로 비판받아요.",sit:"SNS"},
   {no:812,ch:9,en:"Don't come for me.",ko:"저한테 시비 걸지 마요.",sit:"경고"},
   {no:813,ch:9,en:"She got cancelled.",ko:"그녀가 캔슬됐어요.",sit:"SNS"},
   {no:814,ch:9,en:"He's so problematic.",ko:"그는 정말 문제가 많아요.",sit:"비판"},
@@ -3783,22 +3789,22 @@ const S3 = [
   {no:850,ch:9,en:"Not a skill issue, a will issue.",ko:"실력 문제가 아니라 의지 문제예요.",sit:"반박"},
   {no:851,ch:9,en:"It's giving... nothing.",ko:"딱히 느낌이 없어요.",sit:"표현"},
   {no:852,ch:9,en:"It's giving chaotic energy.",ko:"혼돈스러운 에너지가 느껴져요.",sit:"표현"},
-  {no:853,ch:9,en:"Main character syndrome.",ko:"주인공 증후군이에요.",sit:"표현"},
-  {no:854,ch:9,en:"Villain era.",ko:"악당 시대예요. (신경 안 쓰는 시기)",sit:"표현"},
-  {no:855,ch:9,en:"I'm in my healing era.",ko:"힐링 시기 중이에요.",sit:"표현"},
-  {no:856,ch:9,en:"I'm in my glow-up era.",ko:"성장하는 시기 중이에요.",sit:"표현"},
-  {no:857,ch:9,en:"Rent-free in my head.",ko:"머릿속에서 계속 맴돌아요.",sit:"표현"},
-  {no:858,ch:9,en:"Living in your head rent-free.",ko:"머릿속에서 공짜로 살고 있어요.",sit:"표현"},
+  {no:853,ch:9,en:"Acting like the world revolves around you.",ko:"세상이 자기 중심으로 돈다고 생각해요.",sit:"표현"},
+  {no:854,ch:9,en:"I'm done caring what people think.",ko:"남들 눈치 이제 안 봐요.",sit:"표현"},
+  {no:855,ch:9,en:"I'm focusing on myself right now.",ko:"지금 저 자신에게 집중하고 있어요.",sit:"표현"},
+  {no:856,ch:9,en:"I'm really working on improving myself.",ko:"자기 개발에 열심히 하고 있어요.",sit:"표현"},
+  {no:857,ch:9,en:"It keeps coming back to me.",ko:"계속 떠올라요.",sit:"집착"},
+  {no:858,ch:9,en:"You're constantly on my mind.",ko:"계속 당신 생각이 나요.",sit:"표현"},
   {no:859,ch:9,en:"That's so real.",ko:"완전 공감이에요.",sit:"공감"},
   {no:860,ch:9,en:"This is so me.",ko:"완전 저 같아요.",sit:"공감"},
-  {no:862,ch:9,en:"POV: you're...",ko:"관점: 당신은...",sit:"SNS"},
+  {no:862,ch:9,en:"Imagine you're in this situation:",ko:"이런 상황을 상상해봐요:",sit:"SNS"},
   {no:863,ch:9,en:"Tell me you're [X] without telling me you're [X].",ko:"말하지 않고 [X]라는 걸 보여줘요.",sit:"SNS"},
   {no:864,ch:9,en:"The audacity to be this good.",ko:"이렇게 잘하다니 뻔뻔해요. (칭찬)",sit:"위트"},
-  {no:865,ch:9,en:"Gatekeeping this.",ko:"이걸 나만 알고 싶어요.",sit:"SNS"},
-  {no:866,ch:9,en:"Stop gatekeeping.",ko:"이기적으로 혼자만 알지 마요.",sit:"SNS"},
+  {no:865,ch:9,en:"I almost didn't want to share this.",ko:"이거 혼자만 알고 싶었어요.",sit:"SNS"},
+  {no:866,ch:9,en:"Share it with everyone.",ko:"다 같이 알아야 해요.",sit:"SNS"},
   {no:867,ch:9,en:"We don't gatekeep here.",ko:"여기선 공유해요.",sit:"SNS"},
-  {no:868,ch:9,en:"Normalize this.",ko:"이걸 일상화해요.",sit:"표현"},
-  {no:869,ch:9,en:"We need to normalize this.",ko:"이걸 일상화해야 해요.",sit:"표현"},
+  {no:868,ch:9,en:"This should be more common.",ko:"이게 더 일반적이어야 해요.",sit:"표현"},
+  {no:869,ch:9,en:"We should all be okay with this.",ko:"우리 모두 이걸 편하게 여겨야 해요.",sit:"표현"},
   {no:870,ch:9,en:"This is the way.",ko:"이게 맞아요.",sit:"공감"},
   {no:871,ch:9,en:"I'm obsessed with this.",ko:"이거에 완전 빠졌어요.",sit:"열정"},
   {no:872,ch:9,en:"Obsessed, can't stop thinking about it.",ko:"집착해요, 멈출 수가 없어요.",sit:"열정"},
@@ -3912,15 +3918,15 @@ const S3 = [
   {no:984,ch:10,en:"To be continued.",ko:"계속 될 거예요.",sit:"마무리"},
   {no:985,ch:10,en:"That's all folks.",ko:"이게 전부예요.",sit:"마무리"},
   {no:986,ch:10,en:"That's a wrap.",ko:"마무리됐어요.",sit:"마무리"},
-  {no:987,ch:10,en:"That's a wrap on today.",ko:"오늘은 여기까지예요.",sit:"마무리"},
+  {no:987,ch:10,en:"That's it for today.",ko:"오늘은 여기까지예요.",sit:"마무리"},
   {no:988,ch:10,en:"Until we meet again.",ko:"다시 만날 때까지요.",sit:"작별"},
-  {no:989,ch:10,en:"Farewell for now.",ko:"이제 작별이에요.",sit:"작별"},
+  {no:989,ch:10,en:"Bye for now.",ko:"이제 가볼게요.",sit:"작별"},
   {no:990,ch:10,en:"So long.",ko:"잘 있어요.",sit:"작별"},
-  {no:991,ch:10,en:"Adieu.",ko:"안녕이에요.",sit:"작별"},
-  {no:992,ch:10,en:"Ciao.",ko:"차오예요.",sit:"작별"},
-  {no:993,ch:10,en:"Auf Wiedersehen.",ko:"다시 만나요.",sit:"작별"},
-  {no:994,ch:10,en:"Au revoir.",ko:"또 봐요.",sit:"작별"},
-  {no:995,ch:10,en:"Sayonara.",ko:"사요나라예요.",sit:"작별"},
+  {no:991,ch:10,en:"Take care.",ko:"잘 지내요.",sit:"작별"},
+  {no:992,ch:10,en:"Later!",ko:"이따 봐요!",sit:"작별"},
+  {no:993,ch:10,en:"See you next time.",ko:"다음에 봐요.",sit:"작별"},
+  {no:994,ch:10,en:"See you soon.",ko:"곧 봐요.",sit:"작별"},
+  {no:995,ch:10,en:"Goodbye for real this time.",ko:"이번엔 진짜 안녕이에요.",sit:"작별"},
   {no:996,ch:10,en:"It's not goodbye, it's see you later.",ko:"안녕이 아니라 나중에 봐요.",sit:"작별"},
   {no:997,ch:10,en:"Until next time, take care.",ko:"다음에 봐요, 잘 지내요.",sit:"작별"},
   {no:998,ch:10,en:"Stay golden.",ko:"멋지게 지내요.",sit:"작별"},
@@ -3946,7 +3952,7 @@ const S3 = [
   {no:409,ch:4,en:"That's a home run.",ko:"대성공이에요.",sit:"성공"},
   {no:501,ch:5,en:"Devil's advocate here.",ko:"반대 입장에서 말해볼게요.",sit:"반박"},
   {no:502,ch:5,en:"Let me play devil's advocate.",ko:"반대 의견을 제시해볼게요.",sit:"반박"},
-  {no:503,ch:5,en:"Just to steelman your argument.",ko:"당신 주장의 가장 강한 형태를 보면요.",sit:"분석"},
+  {no:503,ch:5,en:"To give your point its full weight...",ko:"당신 주장을 최대한 살려서 말하면요...",sit:"토론"},
   {no:601,ch:6,en:"The pen is mightier than the sword.",ko:"글이 칼보다 강해요.",sit:"표현"},
   {no:602,ch:6,en:"Don't bite the hand that feeds you.",ko:"은혜를 원수로 갚지 마요.",sit:"교훈"},
   {no:603,ch:6,en:"You can lead a horse to water but you can't make it drink.",ko:"억지로 시킬 수 없어요.",sit:"교훈"},
@@ -4783,6 +4789,7 @@ function submitTyping(){
   // 정답 즉시 표시
   document.getElementById('typing-answer').textContent = s.en;
   document.getElementById('typing-result').style.display = 'flex';
+  setTimeout(updateStarBtn, 50);
 
   // 발음 즉시 재생 — text 직접 전달
   setTimeout(() => _speakText(s.en, true), 400);
@@ -5664,6 +5671,7 @@ function backupData(){
       en_edits: localStorage.getItem('eng800_en_edits') || '{}',
       my_sentences: localStorage.getItem('eng800_my_sentences') || '[]',
       my_srs: localStorage.getItem('eng800_my_srs') || '{}',
+      starred: localStorage.getItem('eng800_starred') || '{}',
       selected_level: localStorage.getItem('eng800_selected_level') || '1',
     };
 
@@ -5722,6 +5730,7 @@ function restoreData(event){
       if(data.en_edits) localStorage.setItem('eng800_en_edits', data.en_edits);
       if(data.my_sentences) localStorage.setItem('eng800_my_sentences', data.my_sentences);
       if(data.my_srs) localStorage.setItem('eng800_my_srs', data.my_srs);
+      if(data.starred) localStorage.setItem('eng800_starred', data.starred);
       if(data.selected_level) localStorage.setItem('eng800_selected_level', data.selected_level);
 
       // 날짜별 히스토리 복구
@@ -5916,6 +5925,69 @@ function updateLevelBtnStatus(){
       statusEl.style.color = isCurrent ? '#fff' : 'var(--a3)';
     }
   });
+}
+
+
+// ════════════════════════════════════
+// ⭐ 즐겨찾기 (별표 체크 → 내 문장 등록)
+// ════════════════════════════════════
+const STAR_KEY = 'eng800_starred';
+
+function loadStarred(){ try{ return JSON.parse(localStorage.getItem(STAR_KEY)||'{}') }catch{ return {} } }
+function saveStarred(d){ try{ localStorage.setItem(STAR_KEY, JSON.stringify(d)) }catch{} }
+
+function isStarred(no){
+  const starred = loadStarred();
+  return !!starred[no];
+}
+
+function updateStarBtn(){
+  const btn = document.getElementById('star-btn');
+  if(!btn) return;
+  const s = TSES.cards[TSES.idx - 1] || TSES.cards[TSES.idx];
+  if(!s) return;
+  const starred = isStarred(s.no);
+  btn.textContent = starred ? '★' : '☆';
+  btn.style.color = starred ? 'var(--a3)' : 'var(--dim)';
+  btn.title = starred ? '즐겨찾기 해제' : '즐겨찾기 - 내 문장에 추가';
+}
+
+function toggleStar(){
+  const s = TSES.cards[TSES.idx - 1] || TSES.cards[TSES.idx];
+  if(!s) return;
+  const starred = loadStarred();
+  const btn = document.getElementById('star-btn');
+
+  if(starred[s.no]){
+    // 해제
+    delete starred[s.no];
+    saveStarred(starred);
+    // 내 문장에서도 제거
+    const mySents = loadMySents();
+    const filtered = mySents.filter(ms => ms.starNo !== s.no);
+    saveMySents(filtered);
+    if(btn){ btn.textContent = '☆'; btn.style.color = 'var(--dim)'; }
+    showToast('⭐ 즐겨찾기 해제됐어요');
+  } else {
+    // 등록
+    starred[s.no] = true;
+    saveStarred(starred);
+    // 내 문장에 추가 (중복 방지)
+    const mySents = loadMySents();
+    const exists = mySents.some(ms => ms.starNo === s.no || ms.en === s.en);
+    if(!exists){
+      const no = MY_SENT_NO_START + mySents.length;
+      mySents.push({
+        no, en: s.en, ko: s.ko,
+        sit: s.sit || '즐겨찾기',
+        ch: MY_SENT_CH,
+        starNo: s.no  // 원본 번호 저장 (해제 시 삭제용)
+      });
+      saveMySents(mySents);
+    }
+    if(btn){ btn.textContent = '★'; btn.style.color = 'var(--a3)'; }
+    showToast('⭐ 내 문장에 추가됐어요! 반복 학습돼요', 2500);
+  }
 }
 
 // ── INIT ──
