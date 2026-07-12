@@ -5592,7 +5592,7 @@ function show(id){
     }
   }
   if(id==='my-sentences') renderMySentList();
-  if(id==='ch-sentences'){ const l=document.getElementById('chs-list'); if(l) l.scrollTop=0; }
+  if(id==='ch-sentences'){ setTimeout(function(){ const l=document.getElementById('chs-list'); if(l){l.scrollTop=0;l.scrollTo(0,0);} }, 50); }
   if(id==='dashboard') renderDashboard();
 }
 
@@ -5806,7 +5806,6 @@ function openChSentences(chId){
 
   const el = document.getElementById('chs-list');
   el.innerHTML = '';
-  el.scrollTop = 0;
 
   sents.forEach(s => {
     // 레벨별 키 우선, 없으면 기존 키, 없으면 원본
@@ -5842,16 +5841,24 @@ function openChSentences(chId){
   });
 
   show('ch-sentences');
-  // 스크롤 최상단으로 (여러 번 시도)
-  requestAnimationFrame(function(){
-    const l = document.getElementById('chs-list');
-    if(l){ l.scrollTop = 0; }
-    document.getElementById('chs-top-btn').style.display = 'none';
-  });
+  // 내용 추가 완료 후 최상단으로 (DOM 렌더링 완료 기다림)
   setTimeout(function(){
     const l = document.getElementById('chs-list');
-    if(l){ l.scrollTop = 0; }
-  }, 50);
+    if(l){
+      l.scrollTop = 0;
+      l.scrollTo(0, 0);
+    }
+    const btn = document.getElementById('chs-top-btn');
+    if(btn) btn.style.display = 'none';
+  }, 0);
+  setTimeout(function(){
+    const l = document.getElementById('chs-list');
+    if(l){ l.scrollTop = 0; l.scrollTo(0, 0); }
+  }, 100);
+  setTimeout(function(){
+    const l = document.getElementById('chs-list');
+    if(l){ l.scrollTop = 0; l.scrollTo(0, 0); }
+  }, 300);
 }
 
 function openSentEditModal(no){
