@@ -5101,6 +5101,12 @@ function showDone(){
 // HOME
 // ════════════════════════════════════
 function updateHome(){
+  // exit 모달 항상 닫기
+  try {
+    const exitModal = document.getElementById('exit-confirm-modal');
+    if(exitModal) exitModal.style.display = 'none';
+    if(typeof _exitPendingFn !== 'undefined') _exitPendingFn = null;
+  } catch(e){}
   const srs = loadSRS();
   const meta = loadMeta();
   const learned = (window.S||S).filter(s => getCard(srs,s.no).seen).length;
@@ -5578,7 +5584,13 @@ function revealCard(el){
 function show(id){
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  if(id==='home') updateHome();
+  // 홈으로 올 때 typing 화면 포커스 완전 해제
+  if(id==='home'){
+    const typingEl = document.getElementById('typing');
+    if(typingEl) typingEl.blur();
+    document.body.focus();
+    updateHome();
+  }
   if(id==='chapters'){
     renderChapters();
     // _lastChId가 있으면 해당 챕터 카드로 스크롤
