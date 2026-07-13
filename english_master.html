@@ -4087,6 +4087,7 @@ function getDue(chId=null){
 // TYPING MODE
 // ════════════════════════════════════
 let TSES = { cards:[], idx:0 };
+let _lastChId = null; // 마지막 선택 챕터 ID
 
 // ── 자동 정확도 계산 ──────────────────
 // 입력 문장 vs 정답 문장 유사도 (0~100)
@@ -4710,10 +4711,10 @@ function startTyping(chId){
         return true;
       }).sort(()=>Math.random()-.5);
       try {
-      const poolData = JSON.stringify({date:todayStr, cards:pool});
-      localStorage.setItem(TODAY_POOL_KEY, poolData);
-      localStorage.setItem('eng800_today_pool_lv' + CURRENT_LEVEL, poolData);
-    } catch(e){}
+        const poolData = JSON.stringify({date:todayStr, cards:pool});
+        localStorage.setItem(TODAY_POOL_KEY, poolData);
+        localStorage.setItem('eng800_today_pool_lv' + CURRENT_LEVEL, poolData);
+      } catch(e){}
     }
     try { sessionStorage.setItem('eng800_today_cards', JSON.stringify(pool)); } catch(e){}
     // 새 오늘학습 시작 시에만 세션 초기화 (챕터 모드는 건드리지 않음)
