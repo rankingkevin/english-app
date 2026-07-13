@@ -932,14 +932,6 @@ const CHAPTERS3 = [
 let CURRENT_LEVEL = 1;
 
 
-// 현재 활성 문장 배열 반환 (window.S 없을 때 안전하게 처리)
-function getActiveS(){
-  if(window.S && window.S.length) return window.S;
-  const lv = typeof CURRENT_LEVEL !== 'undefined' ? CURRENT_LEVEL : 1;
-  if(lv===2 && typeof S2 !== 'undefined') return S2;
-  if(lv===3 && typeof S3 !== 'undefined') return S3;
-  return typeof S !== 'undefined' ? S : [];
-}
 
 function selectLevel(lv){
   // 레벨 전환 전 현재 풀/진행상황을 현재 레벨키로만 백업
@@ -1933,8 +1925,7 @@ const S = [
 {no:995,ch:10,en:"Don't put all your eggs in one basket.",ko:"한 곳에 모든 걸 걸지 마요.",sit:"분산"},
 {no:998,ch:10,en:"Ignorance is bliss.",ko:"모르는 게 약이에요.",sit:"표현"},
 {no:999,ch:10,en:"Time flies when you're having fun.",ko:"즐거울 때는 시간이 빨리 가요.",sit:"시간"},
-{no:1000,ch:10,en:"Life is what you make it.",ko:"인생은 당신이 만들어 가는 거예요.",sit:"삶"}
-,
+{no:1000,ch:10,en:"Life is what you make it.",ko:"인생은 당신이 만들어 가는 거예요.",sit:"삶"},
 {no:1001,ch:9,en:"That tracks.",ko:"말이 되네요.",sit:"반응"},
 {no:1002,ch:9,en:"It makes sense now.",ko:"이제 말이 돼요.",sit:"이해"},
 {no:1003,ch:9,en:"I'm shook.",ko:"완전 충격받았어요.",sit:"놀람"},
@@ -1983,8 +1974,7 @@ const S = [
 {no:1055,ch:10,en:"I wouldn't hold my breath.",ko:"저라면 기대 안 해요.",sit:"현실"},
 {no:1057,ch:10,en:"Are we on the same page?",ko:"우리 같은 생각이죠?",sit:"확인"},
 {no:1059,ch:10,en:"Try to think outside the box.",ko:"틀에서 벗어나 생각해봐요.",sit:"창의"},
-{no:1060,ch:10,en:"That's food for thought.",ko:"생각할 거리가 되네요.",sit:"성찰"}
-,
+{no:1060,ch:10,en:"That's food for thought.",ko:"생각할 거리가 되네요.",sit:"성찰"},
 {no:1061,ch:9,en:"I can't get enough of this.",ko:"이거 질리지가 않아요.",sit:"열정"},
 {no:1062,ch:9,en:"This hits the spot.",ko:"딱 필요한 거예요.",sit:"만족"},
 {no:1063,ch:9,en:"You're on fire today!",ko:"오늘 완전 잘하고 있어요!",sit:"칭찬"},
@@ -1994,8 +1984,7 @@ const S = [
 {no:1067,ch:9,en:"Main character moment.",ko:"완전 주인공 같은 순간이에요.",sit:"표현"},
 {no:1068,ch:9,en:"That was so clutch.",ko:"정말 결정적인 순간이었어요.",sit:"표현"},
 {no:1069,ch:9,en:"He's lowkey cute.",ko:"그가 은근 귀여워요.",sit:"표현"},
-{no:1070,ch:9,en:"I'm not mad about it.",ko:"나쁘지 않아요.",sit:"반응"}
-,
+{no:1070,ch:9,en:"I'm not mad about it.",ko:"나쁘지 않아요.",sit:"반응"},
 {no:1071,ch:10,en:"The sky's the limit.",ko:"한계는 없어요.",sit:"격려"}
 ];
 const S1 = S; // Level 1 alias
@@ -4009,6 +3998,18 @@ const S3 = [
   {no:1008,ch:10,en:"Seize your moment.",ko:"당신의 순간을 잡아요.",sit:"격려"},
   {no:1009,ch:10,en:"Make it count.",ko:"의미 있게 해요.",sit:"격려"}
 ];
+
+// 현재 활성 문장 배열 반환
+function getActiveS(){
+  if(window.S && Array.isArray(window.S) && window.S.length) return window.S;
+  const lv = typeof CURRENT_LEVEL !== 'undefined' ? CURRENT_LEVEL : 1;
+  if(lv===3) return typeof S3 !== 'undefined' ? S3 : S;
+  if(lv===2) return typeof S2 !== 'undefined' ? S2 : S;
+  return typeof S !== 'undefined' ? S : [];
+}
+
+
+
 
 // ════════════════════════════════════
 // SRS ENGINE (SM-2)
